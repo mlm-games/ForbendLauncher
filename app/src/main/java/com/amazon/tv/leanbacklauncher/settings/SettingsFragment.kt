@@ -238,14 +238,15 @@ class HiddenPreferenceFragment : LeanbackPreferenceFragmentCompat() {
         for (pkg in packages) {
             if (pkg.isNotEmpty()) {
                 try {
-                    val packageInfo = pm.getPackageInfo(pkg, 0)
+                    // val packageInfo = pm.getPackageInfo(pkg, 0) ?: continue
                     val hidden: Boolean = prefUtil.isHidden(pkg)
                     if (hidden) { // show only hidden apps
+                        val appInfo = pm.getPackageInfo(pkg, 0).applicationInfo ?: continue
                         val icon =
-                            pm.getApplicationIcon(packageInfo.applicationInfo) // ?: pm.getApplicationBanner(packageInfo.applicationInfo)
+                            pm.getApplicationIcon(appInfo) // ?: pm.getApplicationBanner(packageInfo.applicationInfo)
                         val appPreference = Preference(context)
-                        appPreference.key = packageInfo.packageName
-                        appPreference.title = pm.getApplicationLabel(packageInfo.applicationInfo)
+                        appPreference.key = appInfo.packageName // packageInfo.packageName
+                        appPreference.title = pm.getApplicationLabel(appInfo)
                         appPreference.icon = icon
                         prefs.add(appPreference)
                     }

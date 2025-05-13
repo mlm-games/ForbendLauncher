@@ -1,21 +1,18 @@
 package com.amazon.tv.leanbacklauncher.settings
 
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Log
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toDrawable
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
 import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.leanbacklauncher.BuildConfig
 import com.amazon.tv.leanbacklauncher.R
 import com.amazon.tv.leanbacklauncher.util.Util.refreshHome
-import java.util.*
 
 class LegacyHiddenPreferenceFragment : GuidedStepSupportFragment() {
     private var mActionToPackageMap: HashMap<Long, String>? = null
@@ -43,7 +40,7 @@ class LegacyHiddenPreferenceFragment : GuidedStepSupportFragment() {
         val bannerWidth = resources.getDimensionPixelSize(R.dimen.preference_item_banner_width)
         val bannerHeight = resources.getDimensionPixelSize(R.dimen.preference_item_banner_height)
         val iconSize = resources.getDimensionPixelSize(R.dimen.preference_item_icon_size)
-        val bitmap = Bitmap.createBitmap(bannerWidth, bannerHeight, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(bannerWidth, bannerHeight)
         val canvas = Canvas(bitmap)
         canvas.drawColor(
             ResourcesCompat.getColor(
@@ -61,7 +58,7 @@ class LegacyHiddenPreferenceFragment : GuidedStepSupportFragment() {
             )
             it.draw(canvas)
         }
-        return BitmapDrawable(resources, bitmap)
+        return bitmap.toDrawable(resources)
     }
 
     override fun onGuidedActionClicked(action: GuidedAction) {
@@ -94,27 +91,29 @@ class LegacyHiddenPreferenceFragment : GuidedStepSupportFragment() {
                     .build()
             )
             var actionId: Long = 0
-            val pm = activity!!.packageManager
+            val pm = requireActivity().packageManager
             for (pkg in packages) {
                 if (pkg.isNotEmpty()) {
                     val hidden: Boolean
                     try {
-                        val packageInfo = pm.getPackageInfo(pkg, 0)
-                        var banner = pm.getApplicationBanner(packageInfo.applicationInfo)
+                        // val packageInfo = pm.getPackageInfo(pkg, 0)
+                        val appInfo = pm.getPackageInfo(pkg, 0).applicationInfo ?: continue
+                        var banner = pm.getApplicationBanner(appInfo)
                         banner = banner
-                            ?: buildBannerFromIcon(pm.getApplicationIcon(packageInfo.applicationInfo))
+                            ?: buildBannerFromIcon(pm.getApplicationIcon(appInfo))
                         hidden = prefUtil.isHidden(pkg)
                         if (hidden) // show only hidden apps
                             actions.add(
                                 GuidedAction.Builder(activity)
                                     .id(actionId)
-                                    .title(pm.getApplicationLabel(packageInfo.applicationInfo))
+                                    .title(pm.getApplicationLabel(appInfo))
                                     .icon(banner)
                                     .checkSetId(-1)
                                     .checked(hidden)
                                     .build()
                             )
-                        mActionToPackageMap!![actionId] = packageInfo.packageName
+                        mActionToPackageMap!![actionId] =
+                            appInfo.packageName // packageInfo.packageName
                         actionId++
                     } catch (e: PackageManager.NameNotFoundException) {
                         e.printStackTrace()

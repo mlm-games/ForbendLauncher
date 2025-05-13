@@ -9,30 +9,29 @@ import android.graphics.drawable.BitmapDrawable
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
 import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
 import java.security.MessageDigest
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.graphics.createBitmap
 
 class WallpaperBitmapTransform(context: Context, mask: Bitmap) : BitmapTransformation() {
-    private val mMaskDrawable: BitmapDrawable = BitmapDrawable(context.resources, mask)
+    private val mMaskDrawable: BitmapDrawable = mask.toDrawable(context.resources)
     private val mMaskHeight: Int
     private val mRect1 = Rect()
     private val mRect2 = Rect()
     override fun transform(pool: BitmapPool, image: Bitmap, outWidth: Int, outHeight: Int): Bitmap {
-//        if (image == null) {
-//            return null
-//        }
         val bitmap: Bitmap
         val canvas: Canvas
         val width = image.width
         val height = image.height
         if (width * outHeight <= outWidth * height) {
             val newHeight = width * outHeight / outWidth
-            bitmap = obtainBitmap(pool, width, newHeight, image.config)
+            bitmap = obtainBitmap(pool, width, newHeight, image.config ?: Bitmap.Config.ARGB_8888)
             canvas = Canvas(bitmap)
             canvas.drawColor(-16777216)
             mRect1[0, 0, width] = newHeight
             canvas.drawBitmap(image, mRect1, mRect1, null)
         } else {
             val newWidth = outWidth * height / outHeight
-            bitmap = obtainBitmap(pool, newWidth, height, image.config)
+            bitmap = obtainBitmap(pool, newWidth, height, image.config  ?: Bitmap.Config.ARGB_8888)
             canvas = Canvas(bitmap)
             canvas.drawColor(-16777216)
             val left = (width - newWidth) / 2
@@ -56,7 +55,7 @@ class WallpaperBitmapTransform(context: Context, mask: Bitmap) : BitmapTransform
         config: Bitmap.Config
     ): Bitmap {
         val recycled = pool.getDirty(width, height, config)
-        return recycled ?: Bitmap.createBitmap(width, height, config)
+        return recycled ?: createBitmap(width, height, config)
     }
 
     override fun updateDiskCacheKey(messageDigest: MessageDigest) {}

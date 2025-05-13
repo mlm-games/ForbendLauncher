@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    compileSdk 34
+    compileSdk 35
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -52,31 +52,31 @@ android {
 }
 
 dependencies {
-    def leanback_version = "1.2.0-alpha04" // "1.0.0"
+    def leanback_version = '1.2.0' // "1.0.0"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     // kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
     // androidx
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.core:core-ktx:1.16.0'
     implementation "androidx.leanback:leanback:$leanback_version"
     implementation "androidx.leanback:leanback-preference:$leanback_version"
-    implementation 'androidx.lifecycle:lifecycle-process:2.8.6'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.8.6'
+    implementation 'androidx.lifecycle:lifecycle-process:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.0'
     implementation 'androidx.palette:palette-ktx:1.0.0'
     // glide
     def glideVersion = '4.16.0'
     implementation "com.github.bumptech.glide:glide:${glideVersion}"
     ksp "com.github.bumptech.glide:ksp:${glideVersion}"
-    implementation 'com.google.guava:guava:32.0.1-jre'
-    implementation 'com.google.code.gson:gson:2.11.0'
+    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'com.google.code.gson:gson:2.13.1'
     implementation 'com.google.android.material:material:1.12.0'
     // Import the Firebase BoM
-    implementation platform('com.google.firebase:firebase-bom:33.4.0')
+    implementation platform('com.google.firebase:firebase-bom:33.13.0')
     // Add the dependency for the Firebase SDK for Google Analytics
     // When using the BoM, don't specify versions in Firebase dependencies
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
     // LocalWeather
     implementation 'com.github.interaapps:LocalWeather-Android:2.0'
 }

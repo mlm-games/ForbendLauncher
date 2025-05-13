@@ -24,6 +24,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import java.util.*
+import androidx.core.graphics.drawable.toDrawable
 
 class LaunchPoint {
     var title: String? = null
@@ -159,14 +160,14 @@ class LaunchPoint {
         }
     }
 
-    constructor(ctx: Context, pm: PackageManager?, info: ResolveInfo) {
+    constructor(ctx: Context, pm: PackageManager, info: ResolveInfo) {
         set(ctx, pm, info)
         isTranslucentTheme = true
     }
 
     constructor(
         ctx: Context,
-        pm: PackageManager?,
+        pm: PackageManager,
         info: ResolveInfo,
         useBanner: Boolean,
         settingsType: Int
@@ -179,7 +180,7 @@ class LaunchPoint {
     @JvmOverloads
     fun set(
         ctx: Context,
-        pm: PackageManager?,
+        pm: PackageManager,
         info: ResolveInfo,
         useBanner: Boolean = true
     ): LaunchPoint {
@@ -199,14 +200,11 @@ class LaunchPoint {
             if (useBanner) {
                 bannerDrawable = ai.loadBanner(pm)
                 if (bannerDrawable is BitmapDrawable) {
-                    bannerDrawable = BitmapDrawable(
-                        res,
-                        Util.getSizeCappedBitmap(
-                            (bannerDrawable as BitmapDrawable?)!!.bitmap,
-                            maxWidth,
-                            maxHeight
-                        )
-                    )
+                    bannerDrawable = Util.getSizeCappedBitmap(
+                        (bannerDrawable as BitmapDrawable?)!!.bitmap,
+                        maxWidth,
+                        maxHeight
+                    )?.toDrawable(res)
                 }
             }
             val overrides = BannerUtil.BANNER_OVERRIDES
@@ -214,14 +212,11 @@ class LaunchPoint {
                 if (packageName!!.lowercase(Locale.getDefault()).contains(str)) {
                     bannerDrawable = ContextCompat.getDrawable(ctx, overrides[str]!!)
                     if (bannerDrawable is BitmapDrawable) {
-                        bannerDrawable = BitmapDrawable(
-                            res,
-                            Util.getSizeCappedBitmap(
-                                (bannerDrawable as BitmapDrawable?)!!.bitmap,
-                                maxWidth,
-                                maxHeight
-                            )
-                        )
+                        bannerDrawable = Util.getSizeCappedBitmap(
+                            (bannerDrawable as BitmapDrawable?)!!.bitmap,
+                            maxWidth,
+                            maxHeight
+                        )?.toDrawable(res)
                     }
                     break
                 }
@@ -232,14 +227,11 @@ class LaunchPoint {
                 if (useBanner) {
                     bannerDrawable = ai.loadLogo(pm)
                     if (bannerDrawable is BitmapDrawable) {
-                        bannerDrawable = BitmapDrawable(
-                            res,
-                            Util.getSizeCappedBitmap(
+                        bannerDrawable = Util.getSizeCappedBitmap(
                                 (bannerDrawable as BitmapDrawable?)!!.bitmap,
-                                maxWidth,
-                                maxHeight
-                            )
-                        )
+                            maxWidth,
+                            maxHeight
+                        )?.toDrawable(res)
                     }
                 }
                 if (bannerDrawable != null) {
@@ -340,8 +332,8 @@ class LaunchPoint {
     }
 
     override fun hashCode(): Int {
-        var result = if (componentName != null) componentName.hashCode() else 0
-        result = 31 * result + if (packageName != null) packageName.hashCode() else 0
+        var result = componentName?.hashCode() ?: 0
+        result = 31 * result + (packageName?.hashCode() ?: 0)
         return result
     }
 
@@ -369,8 +361,7 @@ class LaunchPoint {
                 val color = arr?.getColor(0, defColor) ?: defColor
                 arr?.recycle()
                 color
-            } catch (e: PackageManager.NameNotFoundException) {
-                //e.printStackTrace()
+            } catch (_: PackageManager.NameNotFoundException) {
                 defColor
             }
         }
@@ -408,7 +399,7 @@ class LaunchPoint {
                 )?.theme
                 theme?.applyStyle(info.activityInfo.themeResource, true)
                 val a = theme?.obtainStyledAttributes(intArrayOf(android.R.attr.windowIsTranslucent))
-                val windowIsTranslucent = a?.getBoolean(0, false) ?: false
+                val windowIsTranslucent = a?.getBoolean(0, false) == true
                 a?.recycle()
                 windowIsTranslucent
             } catch (e: PackageManager.NameNotFoundException) {

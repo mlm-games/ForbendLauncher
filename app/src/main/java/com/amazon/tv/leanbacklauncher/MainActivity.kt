@@ -15,7 +15,6 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.location.Location
 import android.media.tv.TvContract
-import android.net.Uri
 import android.os.*
 import android.provider.Settings
 import android.text.TextUtils
@@ -88,6 +87,9 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import androidx.core.view.isNotEmpty
+import androidx.core.net.toUri
+import java.lang.ref.WeakReference
 
 
 class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
@@ -106,6 +108,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         private set
     private var mEventLogger: LeanbackLauncherEventLogger? = null
     private var mFadeDismissAndSummonAnimations = false
+
     private val mHandler: Handler = MainActivityMessageHandler(this)
 
     // animation params
@@ -115,55 +118,66 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
 
     // weather cache
     private val maxCacheAge = TimeUnit.MINUTES.toMillis(10)
+    private val gson by lazy {
+        GsonBuilder().setPrettyPrinting().create()
+    }
 
-    private class MainActivityMessageHandler constructor(private val activity: MainActivity) :
-        Handler() {
+    private class MainActivityMessageHandler(activity: MainActivity) : Handler() {
+        private val activityRef = WeakReference(activity)
         override fun handleMessage(msg: Message) {
-            var z = true
-            when (msg.what) {
-                1, 2 -> {
-                    val mainActivity = activity
-                    if (msg.what != 1) {
-                        z = false
-                    }
-                    mainActivity.mIsIdle = z
-                    var i = 0
-                    while (i < activity.mIdleListeners.size) {
-                        activity.mIdleListeners[i].onIdleStateChange(activity.mIsIdle)
-                        i++
-                    }
-                    return
-                }
-                3 -> {
-                    if (activity.mResetAfterIdleEnabled) {
-                        activity.mKeepUiReset = true
-                        activity.resetLauncherState(true)
-                        //if (BuildConfig.DEBUG) Log.d(TAG, "msg(3) resetLauncherState(smooth: true)")
+            activityRef.get()?.let { activity ->
+                var z = true
+                when (msg.what) {
+                    1, 2 -> {
+                        val mainActivity = activity
+                        if (msg.what != 1) {
+                            z = false
+                        }
+                        mainActivity.mIsIdle = z
+                        var i = 0
+                        while (i < activity.mIdleListeners.size) {
+                            activity.mIdleListeners[i].onIdleStateChange(activity.mIsIdle)
+                            i++
+                        }
                         return
                     }
-                    return
+
+                    3 -> {
+                        if (activity.mResetAfterIdleEnabled) {
+                            activity.mKeepUiReset = true
+                            activity.resetLauncherState(true)
+                            //if (BuildConfig.DEBUG) Log.d(TAG, "msg(3) resetLauncherState(smooth: true)")
+                            return
+                        }
+                        return
+                    }
+
+                    4 -> {
+                        activity.onNotificationRowStateUpdate(msg.arg1)
+                        //if (BuildConfig.DEBUG) Log.d(TAG, "msg(4) onNotificationRowStateUpdate(${msg.arg1})")
+                        return
+                    }
+
+                    5 -> {
+                        activity.homeAdapter?.onUiVisible()
+                        //if (BuildConfig.DEBUG) Log.d(TAG, "msg(5) onUiVisible()")
+                        return
+                    }
+
+                    6 -> {
+                        activity.addWidget(true)
+                        //if (BuildConfig.DEBUG) Log.d(TAG, "msg(6) addWidget(refresh: true)")
+                        return
+                    }
+
+                    7 -> {
+                        activity.checkLaunchPointPositions()
+                        //if (BuildConfig.DEBUG) Log.d(TAG, "msg(7) checkLaunchPointPositions()")
+                        return
+                    }
+
+                    else -> TODO()
                 }
-                4 -> {
-                    activity.onNotificationRowStateUpdate(msg.arg1)
-                    //if (BuildConfig.DEBUG) Log.d(TAG, "msg(4) onNotificationRowStateUpdate(${msg.arg1})")
-                    return
-                }
-                5 -> {
-                    activity.homeAdapter?.onUiVisible()
-                    //if (BuildConfig.DEBUG) Log.d(TAG, "msg(5) onUiVisible()")
-                    return
-                }
-                6 -> {
-                    activity.addWidget(true)
-                    //if (BuildConfig.DEBUG) Log.d(TAG, "msg(6) addWidget(refresh: true)")
-                    return
-                }
-                7 -> {
-                    activity.checkLaunchPointPositions()
-                    //if (BuildConfig.DEBUG) Log.d(TAG, "msg(7) checkLaunchPointPositions()")
-                    return
-                }
-                else -> TODO()
             }
         }
     }
@@ -323,7 +337,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         if (Partner.get(this).showLiveTvOnStartUp() && checkFirstRunAfterBoot()) {
             val tvIntent = Intent("android.intent.action.VIEW", TvContract.buildChannelUri(0))
             tvIntent.putExtra("com.google.android.leanbacklauncher.extra.TV_APP_ON_BOOT", true)
-            if (packageManager.queryIntentActivities(tvIntent, 1).size > 0) {
+            if (packageManager.queryIntentActivities(tvIntent, 1).isNotEmpty()) {
                 startActivity(tvIntent)
                 finish()
             }
@@ -337,7 +351,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             if (!Settings.canDrawOverlays(this)) {
                 val intent = Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
+                    "package:$packageName".toUri()
                 )
                 try {
                     startActivityForResult(intent, 0)
@@ -447,8 +461,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             })
         }
         mShyMode = true
-        val z: Boolean = !mShyMode
-        setShyMode(z, true)
+        setShyMode(!mShyMode, true)
         //if (BuildConfig.DEBUG) Log.d(TAG, "OnCreate setShyMode($z, true), init mShyMode=$mShyMode")
         mIdlePeriod = resources.getInteger(R.integer.idle_period)
         mResetPeriod = resources.getInteger(R.integer.reset_period)
@@ -559,7 +572,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         if (packageName != null && !mUninstallRequested) {
             mUninstallRequested = true
             val uninstallIntent =
-                Intent("android.intent.action.UNINSTALL_PACKAGE", Uri.parse("package:$packageName"))
+                Intent("android.intent.action.UNINSTALL_PACKAGE", "package:$packageName".toUri())
             uninstallIntent.putExtra("android.intent.extra.RETURN_RESULT", true)
             startActivityForResult(uninstallIntent, UNINSTALL_CODE)
         }
@@ -626,7 +639,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             } else {
                 try {
                     lw.useCurrentLocation = false
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // AirLocation.stopLocationUpdates -> NullPointerException: Listener must not be null
                 }
                 RowPreferences.getUserLocation(this)?.let { userLoc ->
@@ -694,7 +707,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                                             lw.fetchCurrentWeatherByLocation(lat, lon)
                                     }
                                 }
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 // unused
                             }
                         }
@@ -714,7 +727,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
 
                 override fun onFailure(exception: Throwable?) {
                     Log.e(TAG, "Weather fetching exception ${exception!!.message!!}")
-                    LauncherApp.toast("Weather error: ${exception!!.message!!}", true)
+                    LauncherApp.toast("Weather error: ${exception.message!!}", true)
                 }
             }
             // only used when useCurrentLocation is true
@@ -765,7 +778,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                                         lw.fetchCurrentWeatherByLocation(lat, lon)
                                 }
                             }
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             // unused
                         }
                     }
@@ -775,11 +788,11 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     }
 
     private fun writeJsonWeather(weather: Weather) {
-        //val gsonWeather = Gson().toJson(weather)
-        //File(cacheFile).writeText(gsonWeather)
-        val gsonPrettyWeather = GsonBuilder().setPrettyPrinting().create().toJson(weather)
-        //if (BuildConfig.DEBUG) Log.d(TAG, "writeJsonWeather()")
-        File(JSONFILE).writeText(gsonPrettyWeather)
+        try {
+            File(JSONFILE).writeText(gson.toJson(weather))
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to write weather cache", e)
+        }
     }
 
     private fun readJsonWeather(f: String) {
@@ -1029,7 +1042,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                 Activity::class.java.getDeclaredMethod("convertFromTranslucent")
             convertFromTranslucent.isAccessible = true
             convertFromTranslucent.invoke(this@MainActivity)
-        } catch (ignored: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 
@@ -1048,7 +1061,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             )
             convertToTranslucent.isAccessible = true
             convertToTranslucent.invoke(this@MainActivity, null, null)
-        } catch (ignored: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 
@@ -1209,7 +1222,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                     Activity::class.java.getDeclaredMethod("isBackgroundVisibleBehind")
                 isBackgroundVisibleBehind.isAccessible = true
                 return isBackgroundVisibleBehind.invoke(this@MainActivity) as Boolean
-            } catch (ignored: Throwable) {
+            } catch (_: Throwable) {
             }
             return false
         }
@@ -1433,7 +1446,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                     //if (BuildConfig.DEBUG) Log.d(TAG, "select search row and requestFocus()")
                 }
             }
-        } else if (state == 0 && mList!!.selectedPosition <= homeAdapter!!.getRowIndex(1) && mNotificationsView!!.childCount > 0) {
+        } else if (state == 0 && mList!!.selectedPosition <= homeAdapter!!.getRowIndex(1) && mNotificationsView!!.isNotEmpty()) {
             // focus on Recomendations
             mNotificationsView?.selectedPosition = 0
             mNotificationsView?.getChildAt(0)?.requestFocus()
