@@ -20,8 +20,8 @@ android {
         minSdkVersion 22
         //noinspection ExpiredTargetSdkVersion,OldTargetApi
         targetSdkVersion 29
-        versionCode 60
-        versionName "1.60"
+        versionCode 61
+        versionName "1.61"
         vectorDrawables.useSupportLibrary = true
         resourceConfigurations += ['en', 'ru', 'uk', 'it', 'fr', 'es', 'de', 'pl', 'zh-rCN']
         setProperty("archivesBaseName", "LeanbackOnFire_v" + versionName)
@@ -54,8 +54,6 @@ android {
 dependencies {
     def leanback_version = '1.2.0' // "1.0.0"
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    // kotlin
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
     // androidx
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.core:core-ktx:1.16.0'
@@ -79,6 +77,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-crashlytics'
     // LocalWeather
     implementation 'com.github.interaapps:LocalWeather-Android:2.0'
+    // kotlinx
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
 }
 
 repositories {

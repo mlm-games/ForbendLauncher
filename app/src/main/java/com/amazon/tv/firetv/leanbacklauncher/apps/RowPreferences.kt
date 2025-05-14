@@ -354,8 +354,8 @@ object RowPreferences {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getString(
             context.getString(R.string.pref_weather_apikey),
-            "b7a56bb43570189115cb8b2d98cdde5b"
-        ) ?: "b7a56bb43570189115cb8b2d98cdde5b"
+            "bd5e378503939ddaee76f12ad7a97608"
+        ).takeIf { it?.isNotBlank() == true } ?: "bd5e378503939ddaee76f12ad7a97608" // ex. b7a56bb43570189115cb8b2d98cdde5b
     }
 
     fun fixRowPrefs() {
