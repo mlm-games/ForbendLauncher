@@ -38,9 +38,11 @@ object AppCategorizer {
         "com.vk.tv",
         "com.xiaodianshi.tv.yst",
         "com.zatoo.player",
+        "com.zdf.android.mediathek",
         "courville.nova",
         "ctcmediagroup.ctc",
         "dailymotion",
+        "de.prosiebensat1digital.seventv",
         "de.swr.ard",
         "disney",
         "divantv",
@@ -204,6 +206,7 @@ object AppCategorizer {
         "spotify",
         "tidal",
         "tunein",
+        "tv.plex.labs.plexamp",
         "zaycev",
     )
     private val GAMES_FILTER = arrayOf(
