@@ -41,7 +41,6 @@ import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.res.ResourcesCompat
@@ -436,7 +435,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                 recommendationsAdapter,
                 editModeView!!
             ).apply {
-                setOnEditModeChangedListener(this)
+                setOnEditModeChangedListener(this@MainActivity)
             }
             setItemViewCacheSize(homeAdapter!!.itemCount)
             adapter = homeAdapter
@@ -555,7 +554,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     }
 
     public override fun onDestroy() {
-        Log.d(TAG, "onDestroy()")
+        if (BuildConfig.DEBUG) Log.d(TAG, "onDestroy()")
         mHandler.removeMessages(3)
         super.onDestroy()
         homeAdapter?.let {
@@ -727,7 +726,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
 //                if (Util.isAmazonDev(this)) {
 //                    fetchGeoIPFallback(lw)
 //                } else {
-                    LauncherApp.toast(R.string.user_location_warning, true)
+                LauncherApp.toast(R.string.user_location_warning, true)
 //                }
             }
         } catch (e: Exception) {
