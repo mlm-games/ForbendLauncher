@@ -217,11 +217,6 @@ public class NotificationsAdapter extends NotificationsServiceAdapter<Notificati
                         .load(new RecImageKey(this.mRecommendation))
                         .apply(this.adapter.mGlideOptions)
                         .into(this.mRecView);
-//                this.adapter.mGlideRequestManager
-//                        .asBitmap()
-//                        .load(new RecImageKey(this.mRecommendation))
-//                        .apply(this.adapter.mGlideOptions)
-//                        .into(this.mRecView);
                 return;
             }
             this.mRecView.setUseBackground(true);

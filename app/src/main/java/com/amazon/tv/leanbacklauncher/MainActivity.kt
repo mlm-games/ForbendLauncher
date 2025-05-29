@@ -6,6 +6,7 @@ import android.app.ActivityOptions
 import android.app.AlarmManager
 import android.app.LoaderManager
 import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_NO_CREATE
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
@@ -123,6 +124,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val FIRST_POSITION = 0
         private const val UNINSTALL_CODE = 321
         const val PERMISSIONS_REQUEST_LOCATION = 99
         val JSONFILE = LauncherApp.context.cacheDir?.absolutePath + "/weather.json"
@@ -188,7 +190,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     // Adapters
     var homeAdapter: HomeScreenAdapter? = null
         private set
-    private var recommendationsAdapter: NotificationsAdapter? = null
+    private var mRecommendationsAdapter: NotificationsAdapter? = null
 
     // Services
     private var mAppWidgetHost: AppWidgetHost? = null
@@ -210,8 +212,13 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     private var mStartingEditMode = false
     private var mUninstallRequested = false
     private var mResetAfterIdleEnabled = false
-    private var mIdlePeriod = 0
-    private var mResetPeriod = 0
+
+    private val mIdlePeriod: Int by lazy {
+        resources.getInteger(R.integer.idle_period)
+    }
+    private val mResetPeriod: Int by lazy {
+        resources.getInteger(R.integer.reset_period)
+    }
 
     // Animations
     private val mEditModeAnimation = AnimatorLifecycle()
@@ -237,7 +244,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         private var mHandler: Handler? = null
         private val mSelectFirstRecommendationRunnable = Runnable {
             mNotificationsView?.takeIf { (it.adapter?.itemCount ?: 0) > 0 }
-                ?.setSelectedPositionSmooth(0)
+                ?.setSelectedPositionSmooth(FIRST_POSITION)
         }
 
         override fun onBackgroundImageChanged(imageUri: String?, signature: String?) {
@@ -245,7 +252,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         }
 
         override fun onSelectedRecommendationChanged(position: Int) {
-            if (mKeepUiReset && mAccessibilityManager?.isEnabled != true && position > 0) {
+            if (mKeepUiReset && mAccessibilityManager?.isEnabled != true && position > FIRST_POSITION) {
                 mHandler = mHandler ?: Handler()
                 mHandler?.post(mSelectFirstRecommendationRunnable)
             }
@@ -276,14 +283,14 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         private val activityRef = WeakReference(activity)
         override fun handleMessage(msg: Message) {
             activityRef.get()?.let { activity ->
-                var z = true
+                var idle = true
                 when (msg.what) {
                     1, 2 -> {
                         val mainActivity = activity
                         if (msg.what != 1) {
-                            z = false
+                            idle = false
                         }
-                        mainActivity.mIsIdle = z
+                        mainActivity.mIsIdle = idle
                         var i = 0
                         while (i < activity.mIdleListeners.size) {
                             activity.mIdleListeners[i].onIdleStateChange(activity.mIsIdle)
@@ -367,8 +374,8 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         super.onCreate(savedInstanceState)
         mContentResolver = contentResolver
 
-        if (recommendationsAdapter == null) {
-            recommendationsAdapter = NotificationsAdapter(this)
+        if (mRecommendationsAdapter == null) {
+            mRecommendationsAdapter = NotificationsAdapter(this)
         }
         val appContext = applicationContext
         setContentView(R.layout.activity_main)
@@ -413,9 +420,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         if (packageManager.hasSystemFeature(PackageManager.FEATURE_APP_WIDGETS))
             mAppWidgetHost = AppWidgetHost(this, 123)
 
-        val recsAdapter = homeAdapter?.recommendationsAdapter?.apply {
-            addIdleListener(this)
-        }
+
 
         mListView = findViewById(R.id.main_list_view)
         mListView?.apply {
@@ -426,13 +431,14 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             windowAlignmentOffsetPercent = BaseGridView.WINDOW_ALIGN_OFFSET_PERCENT_DISABLED
             itemAlignmentOffset = 0
             itemAlignmentOffsetPercent = BaseGridView.WINDOW_ALIGN_OFFSET_PERCENT_DISABLED
+
             mScrollManager = HomeScrollManager(this@MainActivity, this).apply {
                 addHomeScrollListener(wallpaperView!!)
             }
             homeAdapter = HomeScreenAdapter(
                 this@MainActivity,
                 mScrollManager!!,
-                recommendationsAdapter,
+                mRecommendationsAdapter,
                 editModeView!!
             ).apply {
                 setOnEditModeChangedListener(this@MainActivity)
@@ -443,6 +449,9 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             val notifIndex = homeAdapter?.getRowIndex(1) // RowType.NOTIFICATIONS
             if (notifIndex != null && notifIndex != -1) {
                 selectedPosition = notifIndex
+            }
+            val rAdapter = homeAdapter?.recommendationsAdapter?.apply {
+                addIdleListener(this)
             }
             setAnimateChildLayout(false)
             setOnChildViewHolderSelectedListener(object : OnChildViewHolderSelectedListener() {
@@ -478,7 +487,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                             mHomeScreenView?.let {
                                 val homeScreenMessaging = it.homeScreenMessaging
                                 if (tag == 1) {
-                                    recsAdapter?.setNotificationRowViewFlipper(homeScreenMessaging)
+                                    rAdapter?.setNotificationRowViewFlipper(homeScreenMessaging)
                                     mNotificationsView = it.notificationRow
                                     mNotificationsView?.setListener(mNotifListener)
                                 }
@@ -516,8 +525,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         mShyMode = true
         setShyMode(shy = !mShyMode, changeWallpaper = true)
 
-        mIdlePeriod = resources.getInteger(R.integer.idle_period)
-        mResetPeriod = resources.getInteger(R.integer.reset_period)
         mFadeDismissAndSummonAnimations = resources.getBoolean(R.bool.app_launch_animation_fade)
         mKeepUiReset = true
         homeAdapter?.onInitUi()
@@ -863,7 +870,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         // Get views
         val weatherVG = findViewById<ViewGroup?>(R.id.weather)
         val detailsVG = findViewById<ViewGroup?>(R.id.details)
-        val curLocTV = findViewById<TextView>(R.id.curLocation).apply {
+        val curLocTV = findViewById<TextView?>(R.id.curLocation)?.apply {
             setupMarquee()
         }
         // Set Location Info
@@ -1455,11 +1462,11 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         get() {
             var position = 0
             var topView = -1
-            var index = 0
-            while (index < mListView!!.childCount) {
-                val child = mListView!!.getChildAt(index)
+            var rowIndex = 0
+            while (rowIndex < mListView!!.childCount) {
+                val child = mListView!!.getChildAt(rowIndex)
                 if (child == null || child.top > 0) {
-                    index++
+                    rowIndex++
                 } else {
                     topView = mListView!!.getChildAdapterPosition(child)
                     if (child.measuredHeight > 0) {
@@ -1474,12 +1481,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                     return position
                 }
             }
-            topView--
-            while (topView >= 0) {
-                position -= homeAdapter!!.getScrollOffset(topView)
-                topView--
-            }
-            return position
+            return 0 // position
         }
 
     private fun onNotificationRowStateUpdate(state: Int) {
@@ -1728,7 +1730,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     private fun checkFirstRunAfterBoot(): Boolean {
         val dummyIntent = Intent("android.intent.category.LEANBACK_LAUNCHER")
         dummyIntent.setClass(this, DummyActivity::class.java)
-        val firstRun = PendingIntent.getActivity(this, 0, dummyIntent, 536870912) == null
+        val firstRun = PendingIntent.getActivity(this, 0, dummyIntent, FLAG_NO_CREATE) == null
         if (firstRun) {
             (getSystemService(ALARM_SERVICE) as AlarmManager)[AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 864000000000L] =
                 PendingIntent.getActivity(this, 0, dummyIntent, 0)
