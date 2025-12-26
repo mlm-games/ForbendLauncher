@@ -17,7 +17,7 @@ class NotificationRowView @JvmOverloads constructor(
     private var mNotificationListener: NotificationRowListener? = null
 
     interface NotificationRowListener {
-        fun onBackgroundImageChanged(str: String?, str2: String?)
+        fun onBackgroundImageChanged(imageUri: String?, signature: String?)
         fun onSelectedRecommendationChanged(i: Int)
     }
 
@@ -66,7 +66,7 @@ class NotificationRowView @JvmOverloads constructor(
     private fun updateLauncherBackground(type: Int) {
         var backgroundUri: String? = null
         var signature: String? = null
-        if (visibility == View.VISIBLE || mNotificationListener == null) {
+        if (visibility == VISIBLE || mNotificationListener == null) {
             val rowActive = isRowActive
             if (mNotificationListener != null && (rowActive || type == 1) && adapter != null && adapter!!.itemCount > 0) {
                 val holder = findViewHolderForLayoutPosition(selectedPosition)
