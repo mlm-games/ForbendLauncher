@@ -9,11 +9,11 @@ plugins {
 kotlin {
     jvmToolchain(21)
     compilerOptions {
-        optIn.set(listOf(
+        optIn.addAll(
             "androidx.compose.material3.ExperimentalMaterial3Api",
             "androidx.compose.foundation.ExperimentalFoundationApi",
             "androidx.compose.foundation.layout.ExperimentalLayoutApi"
-        ))
+        )
     }
 }
 
@@ -23,11 +23,11 @@ android {
 
     defaultConfig {
         applicationId = "com.amazon.tv.leanbacklauncher"
-        minSdk = 26
+        minSdk = 23
         //noinspection ExpiredTargetSdkVersion,OldTargetApi
-        targetSdk = 29
+        targetSdk = 36
         versionCode = 62
-        versionName = "1.62"
+        versionName = "2.0.1"
 
         vectorDrawables.useSupportLibrary = true
 
