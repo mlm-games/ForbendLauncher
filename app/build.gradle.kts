@@ -1,9 +1,10 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+@file:Suppress("UnstableApiUsage")
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.apk.dist)
 }
 
 kotlin {
@@ -31,12 +32,46 @@ android {
 
         vectorDrawables.useSupportLibrary = true
 
-        resourceConfigurations.addAll(
+        androidResources.localeFilters.addAll(
             listOf("en", "ru", "uk", "it", "fr", "es", "de", "pl", "zh-rCN")
         )
-
-        setProperty("archivesBaseName", "LeanbackOnFire_v$versionName")
     }
+
+
+    val enableApkSplits = (providers.gradleProperty("enableApkSplits").orNull ?: "true").toBoolean()
+    val includeUniversalApk =
+        (providers.gradleProperty("includeUniversalApk").orNull ?: "false").toBoolean()
+    val targetAbi = providers.gradleProperty("targetAbi").orNull
+
+    splits {
+        abi {
+            isEnable = enableApkSplits
+            reset()
+            if (enableApkSplits) {
+                if (targetAbi != null) {
+                    include(targetAbi)
+                } else {
+                    include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                }
+            }
+            isUniversalApk = includeUniversalApk
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile =
+                file(System.getenv("KEYSTORE_PATH") ?: "${rootProject.projectDir}/release.keystore")
+            storePassword = System.getenv("STORE_PASSWORD")
+            keyAlias = System.getenv("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD")
+            enableV1Signing = true
+            enableV2Signing = true
+            enableV3Signing = false
+            enableV4Signing = false
+        }
+    }
+
 
     packaging {
         resources {
@@ -45,16 +80,20 @@ android {
     }
 
     buildTypes {
-        release {
+        getByName("debug") {
+            isDebuggable = true
+            isShrinkResources = false
+        }
+        getByName("release") {
+            isDebuggable = false
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-        }
-        debug {
-            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+            buildConfigField("Long", "BUILD_TIME", "${System.currentTimeMillis()}L")
         }
     }
 
@@ -67,7 +106,16 @@ android {
     buildFeatures {
         buildConfig = true
     }
+
+    dependenciesInfo {
+        includeInApk = false
+    }
 }
+
+apkDist {
+    artifactNamePrefix.set("forbendlauncher")
+}
+
 
 dependencies {
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))

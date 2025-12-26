@@ -19,7 +19,7 @@ import javax.net.ssl.HttpsURLConnection
 
 object Updater {
     private const val RELEASE_LINK =
-        "https://api.github.com/repos/tsynik/LeanbackLauncher/releases"
+        "https://api.github.com/repos/mlm-games/ForbendLauncher/releases"
     private var releases: Releases? = null
     private var newVersion: Release? = null
 

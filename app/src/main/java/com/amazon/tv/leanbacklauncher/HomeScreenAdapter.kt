@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.text.TextUtils
 import android.util.SparseArray
 import android.view.LayoutInflater
@@ -454,7 +455,11 @@ class HomeScreenAdapter(
                     }
                 }
             }
-            mMainActivity.registerReceiver(mReceiver, filter)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                mMainActivity.registerReceiver(mReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                mMainActivity.registerReceiver(mReceiver, filter)
+            }
         }
     }
 

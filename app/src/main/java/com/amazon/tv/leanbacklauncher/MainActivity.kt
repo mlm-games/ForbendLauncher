@@ -504,9 +504,13 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             addAction("android.intent.action.PACKAGE_ADDED")
             addDataScheme("package")
         }
-        registerReceiver(mPackageReplacedReceiver, filter)
-        // regiser RefreshHome broadcast ACTION com.amazon.tv.leanbacklauncher.MainActivity
-        registerReceiver(mHomeRefreshReceiver, IntentFilter(this.javaClass.name))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(mPackageReplacedReceiver, filter, Context.RECEIVER_EXPORTED)
+            registerReceiver(mHomeRefreshReceiver, IntentFilter(this.javaClass.name), Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(mPackageReplacedReceiver, filter)
+            registerReceiver(mHomeRefreshReceiver, IntentFilter(this.javaClass.name))
+        }
 
         loaderManager.initLoader(0, null, mSearchIconCallbacks)
         loaderManager.initLoader(1, null, mSearchSuggestionsCallbacks)

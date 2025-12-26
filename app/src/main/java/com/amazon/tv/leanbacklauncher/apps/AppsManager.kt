@@ -2,6 +2,7 @@ package com.amazon.tv.leanbacklauncher.apps
 
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.os.Build
 import androidx.preference.PreferenceManager
 import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
 import com.amazon.tv.leanbacklauncher.HomeScreenRow
@@ -236,17 +237,41 @@ class AppsManager private constructor(private val mContext: Context) :
         val i = mReceiversRegisteredRefCount
         mReceiversRegisteredRefCount = i + 1
         if (i == 0) {
-            mContext.registerReceiver(mPackageChangedReceiver, PackageChangedReceiver.intentFilter)
-            mContext.registerReceiver(
-                mMarketUpdateReceiver,
-                MarketUpdateReceiver.intentFilter,
-                broadcastPermission,
-                null
-            )
-            mContext.registerReceiver(
-                mExternalAppsUpdateReceiver,
-                ExternalAppsUpdateReceiver.intentFilter
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                mContext.registerReceiver(
+                    mPackageChangedReceiver,
+                    PackageChangedReceiver.intentFilter,
+                    Context.RECEIVER_EXPORTED
+                )
+                mContext.registerReceiver(
+                    mMarketUpdateReceiver,
+                    MarketUpdateReceiver.intentFilter,
+                    broadcastPermission,
+                    null,
+                    Context.RECEIVER_EXPORTED
+                )
+                mContext.registerReceiver(
+                    mExternalAppsUpdateReceiver,
+                    ExternalAppsUpdateReceiver.intentFilter,
+                    Context.RECEIVER_EXPORTED
+                )
+            }
+            else {
+                mContext.registerReceiver(
+                    mPackageChangedReceiver,
+                    PackageChangedReceiver.intentFilter,
+                )
+                mContext.registerReceiver(
+                    mMarketUpdateReceiver,
+                    MarketUpdateReceiver.intentFilter,
+                    broadcastPermission,
+                    null
+                )
+                mContext.registerReceiver(
+                    mExternalAppsUpdateReceiver,
+                    ExternalAppsUpdateReceiver.intentFilter
+                )
+            }
         }
     }
 
