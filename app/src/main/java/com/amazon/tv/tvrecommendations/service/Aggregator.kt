@@ -1,11 +1,9 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-import java.util.Date;
+import java.util.Date
 
-public interface Aggregator<T> {
-    void add(Date date, T t);
-
-    double getAggregatedScore();
-
-    void reset();
+interface Aggregator<T> {
+    fun add(date: Date, value: T)
+    fun getAggregatedScore(): Double
+    fun reset()
 }

@@ -1,35 +1,27 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.view.View;
+import android.view.View
+import com.amazon.tv.leanbacklauncher.apps.BannerSelectedChangedListener
+import com.amazon.tv.leanbacklauncher.apps.BannerView
 
-import com.amazon.tv.leanbacklauncher.apps.BannerSelectedChangedListener;
-import com.amazon.tv.leanbacklauncher.apps.BannerView;
+class AppViewFocusAnimator(view: BannerView) : ViewFocusAnimator(view), BannerSelectedChangedListener {
+    private var selected = false
 
-public final class AppViewFocusAnimator extends ViewFocusAnimator implements BannerSelectedChangedListener {
-    private boolean mSelected;
-
-    public AppViewFocusAnimator(BannerView view) {
-        super(view);
-    }
-
-    public void onSelectedChanged(BannerView v, boolean selected) {
-        if (v == this.mTargetView) {
-            this.mSelected = selected;
-            setHasFocus(selected);
+    override fun onSelectedChanged(v: BannerView, selected: Boolean) {
+        if (v == mTargetView) {
+            this.selected = selected
+            setHasFocus(selected)
         }
     }
 
-    public void onEditModeChanged(BannerView v, boolean editMode) {
-        if (v == this.mTargetView && !editMode) {
-            setHasFocus(v.hasFocus());
-        }
+    fun onEditModeChanged(v: BannerView, editMode: Boolean) {
+        if (v == mTargetView && !editMode) setHasFocus(v.hasFocus())
     }
 
-    public void onFocusChange(View v, boolean hasFocus) {
-        if (v == this.mTargetView) {
-            if (!((BannerView) v).isEditMode() || this.mSelected) {
-                super.onFocusChange(v, hasFocus);
-            }
+    override fun onFocusChange(v: View, hasFocus: Boolean) {
+        if (v == mTargetView) {
+            val banner = v as BannerView
+            if (!banner.isEditMode || selected) super.onFocusChange(v, hasFocus)
         }
     }
 }

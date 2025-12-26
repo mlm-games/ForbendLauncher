@@ -1,79 +1,70 @@
-package com.amazon.tv.leanbacklauncher.migration;
+package com.amazon.tv.leanbacklauncher.migration
 
-import android.content.ContentProvider;
-import android.content.ContentValues;
-import android.content.res.AssetFileDescriptor;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
-import android.util.Log;
+import android.content.ContentProvider
+import android.content.ContentValues
+import android.content.res.AssetFileDescriptor
+import android.database.Cursor
+import android.net.Uri
+import android.os.Bundle
+import android.os.ParcelFileDescriptor
+import android.util.Log
+import com.amazon.tv.leanbacklauncher.apps.AppsDbHelper
+import java.io.FileNotFoundException
+import androidx.core.net.toUri
 
-import com.amazon.tv.leanbacklauncher.apps.AppsDbHelper;
-import com.amazon.tv.tvrecommendations.service.DbMigrationContract;
+class DbMigrationContentProvider(
+    private var dbHelper: AppsDbHelper? = null
+) : ContentProvider() {
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+    override fun onCreate() = true
 
-public class DbMigrationContentProvider extends ContentProvider {
-    private static String TAG = "DbMigrationCP";
-    private AppsDbHelper mDbHelper;
-
-    public DbMigrationContentProvider(AppsDbHelper dbHelper) {
-        this.mDbHelper = dbHelper;
-    }
-
-    public DbMigrationContentProvider() {
-    }
-
-    public boolean onCreate() {
-        return true;
-    }
-
-    public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
-        if (DbMigrationContract.CONTENT_URI.equals(uri)) {
+    override fun openTypedAssetFile(uri: Uri, mimeTypeFilter: String, opts: Bundle?): AssetFileDescriptor {
+        if (DbMigrationContract.CONTENT_URI == uri) {
             try {
-                File file = getAppDbHelper().getRecommendationMigrationFile();
+                val file = getAppDbHelper()?.recommendationMigrationFile
                 if (file != null) {
-                    return new AssetFileDescriptor(ParcelFileDescriptor.open(file, 268435456), 0, -1);
+                    return AssetFileDescriptor(
+                        ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY),
+                        0, -1
+                    )
                 }
-            } catch (IOException e) {
-                Log.e(TAG, "Cannot generate a recommendation migration file", e);
+            } catch (e: Exception) {
+                Log.e(TAG, "Cannot generate a recommendation migration file", e)
             }
-            throw new FileNotFoundException("Can't open " + uri);
+            throw FileNotFoundException("Can't open $uri")
         }
-        throw new FileNotFoundException("Unsupported URI: " + uri);
+        throw FileNotFoundException("Unsupported URI: $uri")
     }
 
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        if (!DbMigrationContract.CONTENT_UPDATE_URI.equals(uri)) {
-            return 0;
+    override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?): Int {
+        if (DbMigrationContract.CONTENT_UPDATE_URI == uri) {
+            getAppDbHelper()?.onMigrationComplete()
+            return 1
         }
-        getAppDbHelper().onMigrationComplete();
-        return 1;
+        return 0
     }
 
-    private AppsDbHelper getAppDbHelper() {
-        if (this.mDbHelper != null) {
-            return this.mDbHelper;
+    private fun getAppDbHelper() = dbHelper ?: AppsDbHelper.getInstance(context!!)
+
+    override fun query(uri: Uri, projection: Array<String>?, selection: String?,
+                       selectionArgs: Array<String>?, sortOrder: String?): Cursor? =
+        throw UnsupportedOperationException()
+    override fun getType(uri: Uri): String? = throw UnsupportedOperationException()
+    override fun insert(uri: Uri, values: ContentValues?): Uri? = throw UnsupportedOperationException()
+    override fun delete(uri: Uri, selection: String?, selectionArgs: Array<String>?) =
+        throw UnsupportedOperationException()
+
+    companion object {
+        private const val TAG = "DbMigrationCP"
+    }
+
+    interface DbMigrationContract {
+        companion object {
+            val CONTENT_UPDATE_URI: Uri? =
+                "content://com.amazon.tv.tvrecommendations.migration/migrated".toUri()
+            val CONTENT_URI: Uri? =
+                "content://com.amazon.tv.tvrecommendations.migration/data".toUri()
         }
-        return AppsDbHelper.getInstance(getContext());
     }
 
-    public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getType(Uri uri) {
-        throw new UnsupportedOperationException();
-    }
-
-    public Uri insert(Uri uri, ContentValues values) {
-        throw new UnsupportedOperationException();
-    }
-
-    public int delete(Uri uri, String selection, String[] selectionArgs) {
-        throw new UnsupportedOperationException();
-    }
 }

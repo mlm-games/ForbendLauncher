@@ -1,21 +1,25 @@
-package com.amazon.tv.leanbacklauncher.capabilities;
+package com.amazon.tv.leanbacklauncher.capabilities
 
-public abstract class LauncherConfiguration {
-    private static LauncherConfiguration sInstance;
+abstract class LauncherConfiguration {
+    abstract val isCardElevationEnabled: Boolean
+    abstract val isLegacyRecommendationLayoutEnabled: Boolean
+    abstract val isRichRecommendationViewEnabled: Boolean
+    abstract val isRoundCornersEnabled: Boolean
 
-    public abstract boolean isCardElevationEnabled();
+    companion object {
+        @Volatile
+        var instance: LauncherConfiguration? = null
+            private set
 
-    public abstract boolean isLegacyRecommendationLayoutEnabled();
-
-    public abstract boolean isRichRecommendationViewEnabled();
-
-    public abstract boolean isRoundCornersEnabled();
-
-    public static LauncherConfiguration getInstance() {
-        return sInstance;
+        fun setInstance(config: LauncherConfiguration) {
+            instance = config
+        }
     }
+}
 
-    public static void setInstance(LauncherConfiguration capabilities) {
-        sInstance = capabilities;
-    }
+object HighEndLauncherConfiguration : LauncherConfiguration() {
+    override val isCardElevationEnabled = true
+    override val isRichRecommendationViewEnabled = true
+    override val isLegacyRecommendationLayoutEnabled = false
+    override val isRoundCornersEnabled = true
 }

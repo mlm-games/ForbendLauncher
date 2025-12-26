@@ -1,26 +1,6 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-class Bucket {
-    private ActiveDayBuffer mBuffer = new ActiveDayBuffer(14);
-    private long mTimeStamp;
-
-    public Bucket(long timestamp) {
-        this.mTimeStamp = timestamp;
-    }
-
-    public long getTimestamp() {
-        return this.mTimeStamp;
-    }
-
-    public void setTimestamp(long time) {
-        this.mTimeStamp = time;
-    }
-
-    public void updateTimestamp() {
-        this.mTimeStamp = System.currentTimeMillis();
-    }
-
-    public ActiveDayBuffer getBuffer() {
-        return this.mBuffer;
-    }
+class Bucket(var timestamp: Long) {
+    val buffer = ActiveDayBuffer(14)
+    fun updateTimestamp() { timestamp = System.currentTimeMillis() }
 }

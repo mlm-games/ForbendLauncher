@@ -5,7 +5,7 @@ import com.bumptech.glide.load.Key
 import java.security.MessageDigest
 
 class RecImageKey(rec: TvRecommendation) : Key {
-    val key: String = rec.key
+    val key: String = rec.key!!
     private val mSignature: String
 
     init {

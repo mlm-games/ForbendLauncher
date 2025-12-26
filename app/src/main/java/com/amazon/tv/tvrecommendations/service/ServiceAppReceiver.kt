@@ -1,63 +1,81 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 
-class ServiceAppReceiver extends BroadcastReceiver {
-    private Listener mListener;
+class ServiceAppReceiver(private val listener: Listener) : BroadcastReceiver() {
 
-    public interface Listener {
-        void onPackageAdded(String str);
-
-        void onPackageChanged(String str);
-
-        void onPackageFullyRemoved(String str);
-
-        void onPackageRemoved(String str);
-
-        void onPackageReplaced(String str);
+    interface Listener {
+        fun onPackageAdded(packageName: String)
+        fun onPackageChanged(packageName: String)
+        fun onPackageFullyRemoved(packageName: String)
+        fun onPackageRemoved(packageName: String)
+        fun onPackageReplaced(packageName: String)
     }
 
-    public ServiceAppReceiver(Listener listener) {
-        this.mListener = listener;
-    }
-
-    public void onReceive(Context context, Intent intent) {
-        String packageName = getPackageName(intent);
-        if (packageName != null && packageName.length() != 0) {
-            String action = intent.getAction();
-            if ("android.intent.action.PACKAGE_ADDED".equals(action)) {
-                this.mListener.onPackageAdded(packageName);
-            } else if ("android.intent.action.PACKAGE_CHANGED".equals(action)) {
-                this.mListener.onPackageChanged(packageName);
-            } else if ("android.intent.action.PACKAGE_FULLY_REMOVED".equals(action)) {
-                this.mListener.onPackageFullyRemoved(packageName);
-            } else if ("android.intent.action.PACKAGE_REMOVED".equals(action)) {
-                if (!intent.getBooleanExtra("android.intent.extra.REPLACING", false)) {
-                    this.mListener.onPackageRemoved(packageName);
+    override fun onReceive(context: Context, intent: Intent) {
+        val packageName = intent.data?.schemeSpecificPart?.takeIf { it.isNotEmpty() } ?: return
+        
+        when (intent.action) {
+            Intent.ACTION_PACKAGE_ADDED -> listener.onPackageAdded(packageName)
+            Intent.ACTION_PACKAGE_CHANGED -> listener.onPackageChanged(packageName)
+            Intent.ACTION_PACKAGE_FULLY_REMOVED -> listener.onPackageFullyRemoved(packageName)
+            Intent.ACTION_PACKAGE_REMOVED -> {
+                if (!intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)) {
+                    listener.onPackageRemoved(packageName)
                 }
-            } else if ("android.intent.action.PACKAGE_REPLACED".equals(action)) {
-                this.mListener.onPackageReplaced(packageName);
             }
+            Intent.ACTION_PACKAGE_REPLACED -> listener.onPackageReplaced(packageName)
         }
     }
 
-    public static IntentFilter getIntentFilter() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("android.intent.action.PACKAGE_ADDED");
-        filter.addAction("android.intent.action.PACKAGE_CHANGED");
-        filter.addAction("android.intent.action.PACKAGE_FULLY_REMOVED");
-        filter.addAction("android.intent.action.PACKAGE_REMOVED");
-        filter.addAction("android.intent.action.PACKAGE_REPLACED");
-        filter.addDataScheme("package");
-        return filter;
+    companion object {
+        fun getIntentFilter() = IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_CHANGED)
+            addAction(Intent.ACTION_PACKAGE_FULLY_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
+            addDataScheme("package")
+        }
+    }
+}
+
+class ServiceAppListener(
+    private val context: Context,
+    private val ranker: Ranker
+) : ServiceAppReceiver.Listener {
+
+    private val serviceAppReceiver = ServiceAppReceiver(this)
+    private var externalAppsReceiver: BroadcastReceiver? = null
+
+    fun onCreate() {
+        context.registerReceiver(serviceAppReceiver, ServiceAppReceiver.getIntentFilter())
+        registerExternalAppsReceiver()
     }
 
-    private String getPackageName(Intent intent) {
-        Uri uri = intent.getData();
-        return uri != null ? uri.getSchemeSpecificPart() : null;
+    fun onDestroy() {
+        context.unregisterReceiver(serviceAppReceiver)
+        externalAppsReceiver?.let { context.unregisterReceiver(it) }
+    }
+
+    override fun onPackageAdded(packageName: String) = ranker.onActionPackageAdded(packageName)
+    override fun onPackageChanged(packageName: String) {}
+    override fun onPackageFullyRemoved(packageName: String) = ranker.onActionPackageRemoved(packageName)
+    override fun onPackageRemoved(packageName: String) = ranker.onActionPackageRemoved(packageName)
+    override fun onPackageReplaced(packageName: String) {}
+
+    private fun registerExternalAppsReceiver() {
+        externalAppsReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                // Handle external packages status change if needed
+            }
+        }
+        context.registerReceiver(externalAppsReceiver, IntentFilter().apply {
+            addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE)
+            addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE)
+        })
     }
 }

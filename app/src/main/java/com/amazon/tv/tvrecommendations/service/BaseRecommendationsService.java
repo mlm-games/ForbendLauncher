@@ -13,6 +13,7 @@ import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.amazon.tv.leanbacklauncher.logging.LeanbackLauncherEventLogger;
 import com.amazon.tv.tvrecommendations.IRecommendationsClient;
 import com.amazon.tv.tvrecommendations.IRecommendationsService.Stub;
 
@@ -114,10 +115,10 @@ public abstract class BaseRecommendationsService extends Service {
 
     public void onCreate() {
         super.onCreate();
-        this.mManager = RecommendationsManager.getInstance(this, this.mUnbundled, this.mRankerParametersFactory);
+        this.mManager = RecommendationsManager.Companion.getInstance(this, this.mUnbundled, this.mRankerParametersFactory);
         Context appContext = getApplicationContext();
         // this.mGoogleApiClient = new Builder(appContext).addApi(ClearcutLogger.API).build();
-        this.mEventLogger = LeanbackLauncherEventLogger.getInstance(appContext);
+        this.mEventLogger = LeanbackLauncherEventLogger.Companion.getInstance(appContext);
         // this.mEventLogger.setGoogleApiClient(this.mGoogleApiClient);
         //if (this.mGoogleApiClient != null) {
         //    this.mGoogleApiClient.connect();

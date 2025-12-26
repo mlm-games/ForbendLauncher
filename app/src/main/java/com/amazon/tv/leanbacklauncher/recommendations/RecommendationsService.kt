@@ -7,3 +7,4 @@ class RecommendationsService : BaseRecommendationsService(
     NotificationsServiceV4::class.java,
     GservicesRankerParameters.Factory()
 )
+

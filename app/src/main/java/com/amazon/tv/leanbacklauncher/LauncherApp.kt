@@ -26,6 +26,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.content.edit
 
 
 class LauncherApp : Application() {
@@ -86,13 +87,13 @@ class LauncherApp : Application() {
         override fun onConnected(service: IRecommendationsService) {
             try {
                 val newBlacklist: MutableList<String?> =
-                    ArrayList(listOf(*service.blacklistedPackages))
+                    ArrayList(listOf(*service.getBlacklistedPackages() as Array<out String>))
                 for (pkg in mBlacklist) {
                     if (!newBlacklist.contains(pkg)) {
                         newBlacklist.add(pkg)
                     }
                 }
-                service.blacklistedPackages = newBlacklist.toTypedArray()
+                service.setBlacklistedPackages(newBlacklist.toTypedArray() as Array<String>?)
             } catch (e: RemoteException) {
                 Log.e(TAG, "Could not save migrated blacklist", e)
             }
@@ -103,16 +104,17 @@ class LauncherApp : Application() {
         override fun onDisconnected() {}
     }
 
-    private inner class OldBlacklistClient(context: Context?) : RecommendationsClient(context) {
+    private inner class OldBlacklistClient(context: Context?) : RecommendationsClient(context!!) {
         override fun onConnected(service: IRecommendationsService) {
             synchronized(LauncherApp::class.java) {
                 if (!sBlacklistMigrated) {
                     try {
-                        val blacklist = service.blacklistedPackages
-                        service.blacklistedPackages = arrayOfNulls(0)
+                        val blacklist = service.getBlacklistedPackages()
+                        service.setBlacklistedPackages(emptyArray())
                         sBlacklistMigrated = true
-                        getSharedPreferences(javaClass.name, 0).edit()
-                            .putInt("blacklist_migrate", 1).apply()
+                        getSharedPreferences(javaClass.name, 0).edit {
+                            putInt("blacklist_migrate", 1)
+                        }
                         if (blacklist == null || blacklist.isEmpty()) {
                             Log.d(TAG, "No blacklist to migrate")
                         } else {
@@ -162,7 +164,7 @@ class LauncherApp : Application() {
 
     @Suppress("DEPRECATION")
     private fun isConnectedOld(context: Context): Boolean {
-        val connManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connManager = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val networkInfo = connManager.activeNetworkInfo
         return networkInfo?.isConnected == true
 
@@ -170,7 +172,7 @@ class LauncherApp : Application() {
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun isConnectedNewApi(context: Context): Boolean {
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val cm = context.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         val capabilities = cm.getNetworkCapabilities(cm.activeNetwork)
         return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true
     }
@@ -184,7 +186,7 @@ class LauncherApp : Application() {
     }
 
     private fun initDeviceCapabilities() {
-        LauncherConfiguration.setInstance(HighEndLauncherConfiguration())
+        LauncherConfiguration.setInstance(HighEndLauncherConfiguration)
     }
 
     private fun demigrate() {

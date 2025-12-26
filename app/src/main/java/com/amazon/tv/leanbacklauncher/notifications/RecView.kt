@@ -9,7 +9,6 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.text.TextUtils.TruncateAt
 import android.view.Gravity
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -112,7 +111,7 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
         mSignature = null
         mExpandedInfoAreaBound = false
         mFocusAnimator?.setFocusImmediate(hasFocus())
-        mDimmer.setDimLevelImmediate()
+        mDimmer.setDimLevelImmediate(DimState.ACTIVE)
         requestLayout()
     }
 
@@ -129,17 +128,17 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
                 mProgressBar = ProgressBar(context, null, 0, 16973855)
                 mProgressBar?.let { bar ->
                     bar.progressDrawable = mProgressDrawable
-                    bar.layoutDirection = View.LAYOUT_DIRECTION_LTR
+                    bar.layoutDirection = LAYOUT_DIRECTION_LTR
                     addView(mProgressBar)
                     bar.visibility = VISIBLE
                     bar.max = progressMax
                     bar.progress = progress
                 }
-                mDimmer.addDimTarget(mProgressDrawable)
+                mDimmer.addDimTarget(mProgressDrawable!!)
             }
         } else if (mProgressBar != null) {
             mProgressBar?.visibility = GONE
-            mDimmer.removeDimTarget(mProgressDrawable)
+            mDimmer.removeDimTarget(mProgressDrawable!!)
         }
     }
 
@@ -228,8 +227,8 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
 
     protected fun bindBadge(badgeIcon: Drawable?) {
         if (mBadgeIcon != null) {
-            mDimmer.removeDimTarget(mBadgeIcon)
-            mDimmer.removeDesatDimTarget(mBadgeIcon)
+            mDimmer.removeDimTarget(mBadgeIcon!!)
+            mDimmer.removeDesatDimTarget(mBadgeIcon!!)
         }
         mBadgeIcon = badgeIcon
         mBadgeIcon?.let { badge ->
@@ -238,8 +237,8 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
             mBadgeIconIntrinsicBounds[0.0f, 0.0f, badge.intrinsicWidth.toFloat()] =
                 badge.intrinsicHeight.toFloat()
             badge.callback = this
-            mDimmer.addDimTarget(mBadgeIcon)
-            mDimmer.addDesatDimTarget(mBadgeIcon)
+            mDimmer.addDimTarget(mBadgeIcon!!)
+            mDimmer.addDesatDimTarget(mBadgeIcon!!)
         }
     }
 
@@ -256,16 +255,16 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
     override fun onFocusLevelSettled(focused: Boolean) {
         if (focused) {
             bindExpandedInfoArea()
-            mSourceNameView!!.visibility = View.GONE
-            mTitleView!!.visibility = View.VISIBLE
+            mSourceNameView!!.visibility = GONE
+            mTitleView!!.visibility = VISIBLE
             mTitleView.alpha = 1.0f
-            mContentView!!.visibility = View.VISIBLE
+            mContentView!!.visibility = VISIBLE
             mContentView.alpha = 1.0f
         } else {
-            mSourceNameView!!.visibility = View.VISIBLE
+            mSourceNameView!!.visibility = VISIBLE
             mSourceNameView.alpha = 1.0f
-            mTitleView!!.visibility = View.GONE
-            mContentView!!.visibility = View.GONE
+            mTitleView!!.visibility = GONE
+            mContentView!!.visibility = GONE
         }
         clipBounds = null
         requestLayout()
@@ -301,14 +300,12 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
     }
 
     fun setMainImage(drawable: Drawable?) {
-        if (mImage != null) {
-            mDimmer.removeDimTarget(mImage)
-        }
+        mImage?.let { mDimmer.removeDimTarget(it) }
         if (drawable != null) {
             mImage = drawable.mutate()
             layoutMainImage(width)
             mImage!!.callback = this
-            mDimmer.addDimTarget(mImage)
+            mDimmer.addDimTarget(mImage!!)
         } else {
             mImage = null
         }
@@ -318,10 +315,10 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
     fun setUseBackground(useBackground: Boolean) {
         if (useBackground) {
             background = mBackground
-            mDimmer.addDimTarget(mBackground)
+            mDimmer.addDimTarget(mBackground!!)
             return
         }
-        mDimmer.removeDimTarget(mBackground)
+        mDimmer.removeDimTarget(mBackground!!)
         background = null
     }
 
@@ -629,7 +626,7 @@ abstract class RecView(context: Context) : ViewGroup(context), Target<Bitmap?>,
         setWillNotDraw(false)
         id = R.id.card
         isFocusable = true
-        val launcherConfiguration = LauncherConfiguration.getInstance()
+        val launcherConfiguration = LauncherConfiguration.instance
         if (launcherConfiguration != null && launcherConfiguration.isRoundCornersEnabled) {
             if (sOutline == null) { // sOutline = RoundedRectOutlineProvider(resources.getDimensionPixelOffset(R.dimen.notif_card_corner_radius).toFloat())
                 sOutline = RoundedRectOutlineProvider(RowPreferences.getCorners(context).toFloat())

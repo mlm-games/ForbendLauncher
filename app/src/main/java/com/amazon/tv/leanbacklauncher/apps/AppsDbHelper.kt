@@ -14,10 +14,13 @@ import com.amazon.tv.leanbacklauncher.BuildConfig
 import com.amazon.tv.leanbacklauncher.util.CSyncTask
 import com.amazon.tv.leanbacklauncher.util.Util.setInitialRankingAppliedFlag
 import com.amazon.tv.tvrecommendations.service.DbHelper
-import com.amazon.tv.tvrecommendations.service.DbStateWriter
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.io.ObjectOutputStream
+import java.io.OutputStream
+import androidx.core.database.sqlite.transaction
+
 
 class AppsDbHelper(context: Context, databaseName: String?) :
     SQLiteOpenHelper(context, databaseName, null, 11) {
@@ -122,47 +125,46 @@ class AppsDbHelper(context: Context, databaseName: String?) :
             val cv = ContentValues()
             cv.put("key", mKey)
             val db = this@AppsDbHelper.writableDatabase
-            db.beginTransaction()
-            if (db.update("entity", cv, "key = ? ", arrayOf(mKey)) == 0) {
-                db.insert("entity", null, cv)
-            }
-            for (componentValues in mComponents) {
-                var count = 0
-                val component = componentValues.getAsString("component")
-                val timeStamp = componentValues.getAsLong("last_opened")
-                synchronized(mLock) {
-                    if (mMostRecentTimeStamp < timeStamp) {
-                        mMostRecentTimeStamp = timeStamp
-                    }
+            db.transaction {
+                if (update("entity", cv, "key = ? ", arrayOf(mKey)) == 0) {
+                    insert("entity", null, cv)
                 }
-                if (component == null) {
-                    try {
-                        count = db.update(
+                for (componentValues in mComponents) {
+                    var count = 0
+                    val component = componentValues.getAsString("component")
+                    val timeStamp = componentValues.getAsLong("last_opened")
+                    synchronized(mLock) {
+                        if (mMostRecentTimeStamp < timeStamp) {
+                            mMostRecentTimeStamp = timeStamp
+                        }
+                    }
+                    if (component == null) {
+                        try {
+                            count = update(
+                                "entity_scores",
+                                componentValues,
+                                "key = ? AND component IS NULL",
+                                arrayOf(mKey)
+                            )
+                        } catch (e: SQLiteException) {
+                            Log.e(TAG, "Could not save entity $mKey", e)
+                            endTransaction()
+                        } catch (th: Throwable) {
+                            endTransaction()
+                        }
+                    } else {
+                        count = update(
                             "entity_scores",
                             componentValues,
-                            "key = ? AND component IS NULL",
-                            arrayOf(mKey)
+                            "key = ? AND component = ?",
+                            arrayOf(mKey, component)
                         )
-                    } catch (e: SQLiteException) {
-                        Log.e(TAG, "Could not save entity $mKey", e)
-                        db.endTransaction()
-                    } catch (th: Throwable) {
-                        db.endTransaction()
                     }
-                } else {
-                    count = db.update(
-                        "entity_scores",
-                        componentValues,
-                        "key = ? AND component = ?",
-                        arrayOf(mKey, component)
-                    )
-                }
-                if (count == 0) {
-                    db.insert("entity_scores", null, componentValues)
+                    if (count == 0) {
+                        insert("entity_scores", null, componentValues)
+                    }
                 }
             }
-            db.setTransactionSuccessful()
-            db.endTransaction()
             return null
         }
 
@@ -380,4 +382,82 @@ class AppsDbHelper(context: Context, databaseName: String?) :
         }
     }
 
+}
+
+class DbStateWriter(stream: OutputStream?) {
+    private val mOut: ObjectOutputStream = ObjectOutputStream(stream)
+
+    init {
+        this.mOut.writeInt(1)
+    }
+
+    @Throws(IOException::class)
+    fun writeEntity(key: String?, bonus: Float, bonusTime: Long, hasRecommendations: Boolean) {
+        this.mOut.writeChar(101)
+        this.mOut.writeUTF(key)
+        this.mOut.writeFloat(bonus)
+        this.mOut.writeLong(bonusTime)
+        this.mOut.writeBoolean(hasRecommendations)
+    }
+
+    @Throws(IOException::class)
+    fun writeComponent(key: String?, component: String?, order: Int, lastOpenedTimestamp: Long) {
+        var component = component
+        this.mOut.writeChar(99)
+        this.mOut.writeUTF(key)
+        val objectOutputStream = this.mOut
+        if (component == null) {
+            component = ""
+        }
+        objectOutputStream.writeUTF(component)
+        this.mOut.writeInt(order)
+        this.mOut.writeLong(lastOpenedTimestamp)
+    }
+
+    @Throws(IOException::class)
+    fun writeBucket(key: String?, groupId: String?, lastUpdatedTimestamp: Long) {
+        var groupId = groupId
+        this.mOut.writeChar(98)
+        this.mOut.writeUTF(key)
+        val objectOutputStream = this.mOut
+        if (groupId == null) {
+            groupId = ""
+        }
+        objectOutputStream.writeUTF(groupId)
+        this.mOut.writeLong(lastUpdatedTimestamp)
+    }
+
+    @Throws(IOException::class)
+    fun writeSignals(
+        id: Int,
+        key: String?,
+        groupId: String?,
+        day: Int,
+        clicks: Int,
+        impressions: Int
+    ) {
+        var groupId = groupId
+        this.mOut.writeChar(115)
+        this.mOut.writeInt(id)
+        this.mOut.writeUTF(key)
+        val objectOutputStream = this.mOut
+        if (groupId == null) {
+            groupId = ""
+        }
+        objectOutputStream.writeUTF(groupId)
+        this.mOut.writeInt(day)
+        this.mOut.writeInt(clicks)
+        this.mOut.writeInt(impressions)
+    }
+
+    @Throws(IOException::class)
+    fun writeBlacklistedPackage(key: String?) {
+        this.mOut.writeChar(107)
+        this.mOut.writeUTF(key)
+    }
+
+    @Throws(IOException::class)
+    fun close() {
+        this.mOut.close()
+    }
 }

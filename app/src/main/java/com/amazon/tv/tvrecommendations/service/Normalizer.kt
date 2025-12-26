@@ -1,24 +1,11 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
 class Normalizer {
-    private double mSum;
+    private var sum = 0.0
 
-    public Normalizer() {
-        reset();
-    }
+    fun addNormalizeableValue(value: Double) { sum += value }
 
-    public void addNormalizeableValue(double value) {
-        this.mSum += value;
-    }
+    fun getNormalizedValue(value: Double) = if (sum != 0.0) value / sum else 0.0
 
-    public double getNormalizedValue(double value) {
-        if (this.mSum != 0.0d) {
-            return value / this.mSum;
-        }
-        return 0.0d;
-    }
-
-    public void reset() {
-        this.mSum = 0.0d;
-    }
+    fun reset() { sum = 0.0 }
 }

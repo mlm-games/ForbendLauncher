@@ -74,7 +74,7 @@ class BannerView @JvmOverloads constructor(
         if (mAppBanner is ImageView) {
             mAppBanner?.outlineProvider = sOutline
             mAppBanner?.clipToOutline = true
-            viewDimmer?.addDimTarget(mAppBanner as ImageView?)
+            viewDimmer?.addDimTarget(mAppBanner as ImageView)
         } else {
             if (mAppBanner is LinearLayout) {
                 mAppBanner?.outlineProvider = sOutline
@@ -107,7 +107,7 @@ class BannerView @JvmOverloads constructor(
                 viewDimmer?.addDimTarget(background)
             }
         }
-        viewDimmer?.setDimLevelImmediate()
+        viewDimmer?.setDimLevelImmediate(DimState.INACTIVE)
         val radius = RowPreferences.getCorners(ctx)
             .toFloat() // (float) getResources().getDimensionPixelOffset(R.dimen.banner_corner_radius);
         var stroke = 2 // fixed width for edit frame
@@ -160,7 +160,7 @@ class BannerView @JvmOverloads constructor(
     }
 
     fun setTextViewColor(textView: TextView?, color: Int) {
-        viewDimmer?.setTargetTextColor(textView, color)
+        viewDimmer?.setTargetTextColor(textView!!, color)
     }
 
     var isEditMode: Boolean
@@ -202,14 +202,14 @@ class BannerView @JvmOverloads constructor(
         if (mEditMode && hasFocus()) {
             viewDimmer?.setDimState(DimState.ACTIVE, false)
             if (isSelected) {
-                mEditFocusFrame?.visibility = View.GONE
+                mEditFocusFrame?.visibility = GONE
                 return
             }
-            mEditFocusFrame?.visibility = View.VISIBLE
+            mEditFocusFrame?.visibility = VISIBLE
             post { requestLayout() }
             return
         }
-        mEditFocusFrame?.visibility = View.GONE
+        mEditFocusFrame?.visibility = GONE
     }
 
     override fun onEditModeChanged(editMode: Boolean) {
@@ -235,7 +235,7 @@ class BannerView @JvmOverloads constructor(
         setFocusedFrameState()
         // focus outline
         mFocusFrame?.let {
-            if (hasFocus()) it.visibility = View.VISIBLE else it.visibility = View.GONE
+            if (hasFocus()) it.visibility = VISIBLE else it.visibility = GONE
         }
     }
 
@@ -333,7 +333,7 @@ class BannerView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         clearAnimation()
-        viewDimmer?.setDimLevelImmediate()
+        viewDimmer?.setDimLevelImmediate(DimState.INACTIVE)
         mFocusAnimator.setFocusImmediate(hasFocus())
         setAnimationsEnabled(true)
     }

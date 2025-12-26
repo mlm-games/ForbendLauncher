@@ -1,330 +1,243 @@
-package com.amazon.tv.leanbacklauncher.notifications;
+package com.amazon.tv.leanbacklauncher.notifications
 
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
-import android.content.res.Resources.Theme;
-import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.media.MediaMetadata;
-import android.media.session.MediaController;
-import android.media.session.MediaController.Callback;
-import android.media.session.MediaSession;
-import android.media.session.MediaSessionManager;
-import android.media.session.MediaSessionManager.OnActiveSessionsChangedListener;
-import android.media.session.PlaybackState;
-import android.os.Parcel;
-import android.os.RemoteException;
-import android.text.TextUtils;
-import android.util.Log;
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.TypedArray
+import android.graphics.*
+import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
+import android.text.TextUtils
+import android.util.Log
+import com.amazon.tv.leanbacklauncher.R
+import com.amazon.tv.leanbacklauncher.util.Util
+import java.lang.ref.WeakReference
 
-import com.amazon.tv.leanbacklauncher.R;
-import com.amazon.tv.leanbacklauncher.util.Util;
+class NowPlayCardListener(
+    private val context: Context,
+    private val isTestRunning: Boolean = false
+) : MediaSessionManager.OnActiveSessionsChangedListener {
 
-import java.lang.ref.WeakReference;
-import java.util.List;
-
-class NowPlayCardListener implements OnActiveSessionsChangedListener {
-    private int mBannerMaxHeight;
-    private int mBannerMaxWidth;
-    private int mCardMaxHeight;
-    private int mCardMaxWidth;
-    private final Context mContext;
-    private final boolean mIsTestRunning;
-    private MediaController mLastMediaController;
-    private final Callback mMediaSessionCallback;
-    private Listener mNowPlayCardListener;
-    private float mNowPlayingDefaultDarkening;
-
-    public interface Listener {
-        void onClientChanged(boolean z);
-
-        void onClientPlaybackStateUpdate(int i, long j, long j2);
-
-        void onMediaDataUpdated(NowPlayingCardData nowPlayingCardData);
+    interface Listener {
+        fun onClientChanged(clearing: Boolean)
+        fun onMediaDataUpdated(mediaData: NowPlayingCardData)
+        fun onClientPlaybackStateUpdate(state: Int, stateChangeTimeMs: Long, currentPosMs: Long)
     }
 
-    private static class MediaControllerCallback extends Callback {
-        private final WeakReference<NowPlayCardListener> mListener;
+    private val cardMaxWidth = context.resources.getDimensionPixelOffset(R.dimen.notif_card_img_max_width)
+    private val cardMaxHeight = context.resources.getDimensionPixelOffset(R.dimen.notif_card_img_height)
+    private val bannerMaxWidth = context.resources.getDimensionPixelOffset(R.dimen.banner_width)
+    private val bannerMaxHeight = context.resources.getDimensionPixelOffset(R.dimen.banner_height)
+    private val nowPlayingDefaultDarkening = context.resources.getFraction(R.fraction.now_playing_icon_color_darkening, 1, 1)
 
-        MediaControllerCallback(NowPlayCardListener listener) {
-            this.mListener = new WeakReference(listener);
-        }
+    private var lastMediaController: MediaController? = null
+    private var nowPlayCardListener: Listener? = null
+    
+    private val mediaSessionCallback = MediaControllerCallback(this)
 
-        public void onPlaybackStateChanged(PlaybackState state) {
-            NowPlayCardListener listener = this.mListener.get();
-            if (listener != null) {
-                if (Log.isLoggable("NowPlayCardListener", 3)) {
-                    Log.d("NowPlayCardListener", "onPlaybackStateChanged: " + state);
-                }
-                listener.updatePlayback(state);
+    private class MediaControllerCallback(listener: NowPlayCardListener) : MediaController.Callback() {
+        private val listenerRef = WeakReference(listener)
+
+        override fun onPlaybackStateChanged(state: PlaybackState?) {
+            val listener = listenerRef.get() ?: return
+            if (Log.isLoggable(TAG, Log.DEBUG)) {
+                Log.d(TAG, "onPlaybackStateChanged: $state")
             }
+            state?.let { listener.updatePlayback(it) }
         }
 
-        public void onMetadataChanged(MediaMetadata metadata) {
-            NowPlayCardListener listener = this.mListener.get();
-            if (listener != null) {
-                listener.updateMetadata(metadata);
-            }
+        override fun onMetadataChanged(metadata: MediaMetadata?) {
+            listenerRef.get()?.updateMetadata(metadata)
         }
     }
 
-    NowPlayCardListener(Context context, boolean isTestRunning) {
-        this.mMediaSessionCallback = new MediaControllerCallback(this);
-        this.mContext = context;
-        this.mIsTestRunning = isTestRunning;
-        Resources res = this.mContext.getResources();
-        this.mCardMaxWidth = res.getDimensionPixelOffset(R.dimen.notif_card_img_max_width);
-        this.mCardMaxHeight = res.getDimensionPixelOffset(R.dimen.notif_card_img_height);
-        this.mBannerMaxWidth = res.getDimensionPixelOffset(R.dimen.banner_width);
-        this.mBannerMaxHeight = res.getDimensionPixelOffset(R.dimen.banner_height);
-        this.mNowPlayingDefaultDarkening = res.getFraction(R.fraction.now_playing_icon_color_darkening, 1, 1);
+    override fun onActiveSessionsChanged(controllers: List<MediaController>?) {
+        updateMediaSessionCallback(controllers?.firstOrNull())
     }
 
-    NowPlayCardListener(Context context) {
-        this(context, false);
-    }
+    private fun updateMediaSessionCallback(activeController: MediaController?) {
+        if (activeController != lastMediaController) {
+            lastMediaController?.unregisterCallback(mediaSessionCallback)
+            activeController?.registerCallback(mediaSessionCallback)
+            lastMediaController = activeController
+        }
 
-    public void onActiveSessionsChanged(List<MediaController> controllers) {
-        updateMediaSessionCallback(controllers.size() == 0 ? null : controllers.get(0));
-    }
+        val clearing = lastMediaController == null
+        nowPlayCardListener?.onClientChanged(clearing)
 
-    private void updateMediaSessionCallback(MediaController activeController) {
-        boolean clearing = false;
-        if (activeController != this.mLastMediaController) {
-            if (this.mLastMediaController != null) {
-                this.mLastMediaController.unregisterCallback(this.mMediaSessionCallback);
-            }
-            if (activeController != null) {
-                activeController.registerCallback(this.mMediaSessionCallback);
-            }
-            this.mLastMediaController = activeController;
-        }
-        if (this.mLastMediaController == null) {
-            clearing = true;
-        }
-        if (this.mNowPlayCardListener != null) {
-            this.mNowPlayCardListener.onClientChanged(clearing);
-        }
         if (!clearing) {
-            updateMetadata(this.mLastMediaController.getMetadata());
-            updatePlayback(this.mLastMediaController.getPlaybackState());
+            updateMetadata(lastMediaController?.metadata)
+            updatePlayback(lastMediaController?.playbackState)
         }
     }
 
-    public synchronized void setRemoteControlListener(Listener listener) throws RemoteException {
-        if (Log.isLoggable("NowPlayCardListener", 3)) {
-            Log.d("NowPlayCardListener", "setRemoteControlListener: " + listener);
+    @Synchronized
+    fun setRemoteControlListener(listener: Listener?) {
+        if (Log.isLoggable(TAG, Log.DEBUG)) {
+            Log.d(TAG, "setRemoteControlListener: $listener")
         }
-        MediaSessionManager manager = (MediaSessionManager) this.mContext.getApplicationContext().getSystemService("media_session");
+
+        val manager = context.applicationContext.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+        
         if (listener != null) {
-            manager.addOnActiveSessionsChangedListener(this, null);
-            this.mNowPlayCardListener = listener;
-            checkForMediaSession();
+            manager.addOnActiveSessionsChangedListener(this, null)
+            nowPlayCardListener = listener
+            checkForMediaSession()
         } else {
-            manager.removeOnActiveSessionsChangedListener(this);
-            this.mNowPlayCardListener = null;
-            updateMediaSessionCallback(null);
+            manager.removeOnActiveSessionsChangedListener(this)
+            nowPlayCardListener = null
+            updateMediaSessionCallback(null)
         }
     }
 
-    private void updateMetadata(MediaMetadata metadata) {
-        if (this.mNowPlayCardListener != null && metadata != null) {
-            Parcel parcel = Parcel.obtain();
-            metadata.writeToParcel(parcel, 0);
-            // todo is this right?
-            NowPlayingCardData data = new NowPlayingCardData(parcel);
-            setPendingIntentAndPackage(data, (MediaSessionManager) this.mContext.getApplicationContext().getSystemService("media_session"));
-            data.title = getMetadataString(metadata, "android.media.metadata.TITLE", this.mContext.getString(R.string.unknown_title));
-            String fallbackArtist = getApplicationLabel(data.playerPackage);
-            if (TextUtils.isEmpty(fallbackArtist)) {
-                fallbackArtist = this.mContext.getString(R.string.unknown_artist);
-            }
-            data.artist = getMetadataString(metadata, "android.media.metadata.ARTIST", fallbackArtist);
-            data.albumArtist = getMetadataString(metadata, "android.media.metadata.ALBUM_ARTIST", this.mContext.getString(R.string.unknown_album_artist));
-            data.albumTitle = getMetadataString(metadata, "android.media.metadata.ALBUM", this.mContext.getString(R.string.unknown_album));
-            data.year = getMetadataLong(metadata, "android.media.metadata.YEAR", Long.valueOf(-1)).longValue();
-            data.trackNumber = getMetadataLong(metadata, "android.media.metadata.TRACK_NUMBER", Long.valueOf(-1)).longValue();
-            data.duration = getMetadataLong(metadata, "android.media.metadata.DURATION", Long.valueOf(-1)).longValue();
-            data.artwork = getResizedRecommendationBitmap(getArt(metadata), false, false);
-            data.badgeIcon = getBadgeIcon(metadata);
-            data.launchColor = getColor(data.playerPackage);
-            if (data.artwork == null) {
-                data.artwork = generateArtwork(data.playerPackage);
-            }
-            this.mNowPlayCardListener.onMediaDataUpdated(data);
-        }
-    }
+    private fun updateMetadata(metadata: MediaMetadata?) {
+        val listener = nowPlayCardListener ?: return
+        metadata ?: return
 
-    private void updatePlayback(PlaybackState state) {
-        if (this.mNowPlayCardListener != null && state != null) {
-            this.mNowPlayCardListener.onClientPlaybackStateUpdate(state.getState(), state.getLastPositionUpdateTime(), state.getPosition());
-        }
-    }
-
-    public Bitmap getArt(MediaMetadata mediaMetadata) {
-        if (mediaMetadata == null) {
-            return null;
-        }
-        Bitmap art = mediaMetadata.getBitmap("android.media.metadata.ALBUM_ART");
-        if (art == null) {
-            return mediaMetadata.getBitmap("android.media.metadata.ART");
-        }
-        return art;
-    }
-
-    public Bitmap getBadgeIcon(MediaMetadata mediaMetadata) {
-        if (mediaMetadata != null) {
-            return mediaMetadata.getBitmap("android.media.metadata.DISPLAY_ICON");
-        }
-        return null;
-    }
-
-    public String getMetadataString(MediaMetadata mediaMetadata, String key, String defaultVal) {
-        if (mediaMetadata != null) {
-            String value = mediaMetadata.getString(key);
-            if (value != null) {
-                return value;
+        val manager = context.applicationContext.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+        
+        val data = NowPlayingCardData().apply {
+            setPendingIntentAndPackage(this, manager)
+            title = getMetadataString(metadata, MediaMetadata.METADATA_KEY_TITLE, context.getString(R.string.unknown_title))
+            
+            val fallbackArtist = getApplicationLabel(playerPackage) ?: context.getString(R.string.unknown_artist)
+            artist = getMetadataString(metadata, MediaMetadata.METADATA_KEY_ARTIST, fallbackArtist)
+            albumArtist = getMetadataString(metadata, MediaMetadata.METADATA_KEY_ALBUM_ARTIST, context.getString(R.string.unknown_album_artist))
+            albumTitle = getMetadataString(metadata, MediaMetadata.METADATA_KEY_ALBUM, context.getString(R.string.unknown_album))
+            year = getMetadataLong(metadata, MediaMetadata.METADATA_KEY_YEAR, -1)
+            trackNumber = getMetadataLong(metadata, MediaMetadata.METADATA_KEY_TRACK_NUMBER, -1)
+            duration = getMetadataLong(metadata, MediaMetadata.METADATA_KEY_DURATION, -1)
+            artwork = getResizedBitmap(getArt(metadata), false)
+            badgeIcon = getBadgeIcon(metadata)
+            launchColor = getColor(playerPackage)
+            
+            if (artwork == null) {
+                artwork = generateArtwork(playerPackage)
             }
         }
-        return defaultVal;
+        
+        listener.onMediaDataUpdated(data)
     }
 
-    public Long getMetadataLong(MediaMetadata mediaMetadata, String key, Long defaultVal) {
-        if (mediaMetadata != null) {
-            Long value = Long.valueOf(mediaMetadata.getLong(key));
-            if (value.longValue() != 0) {
-                return value;
-            }
-        }
-        return defaultVal;
+    private fun updatePlayback(state: PlaybackState?) {
+        val listener = nowPlayCardListener ?: return
+        state ?: return
+        listener.onClientPlaybackStateUpdate(state.state, state.lastPositionUpdateTime, state.position)
     }
 
-    private String getApplicationLabel(String packageName) {
-        try {
-            PackageManager pkgMan = this.mContext.getPackageManager();
-            return pkgMan.getApplicationLabel(pkgMan.getApplicationInfo(packageName, 0)).toString();
-        } catch (NameNotFoundException e) {
-            return null;
-        }
+    private fun getArt(metadata: MediaMetadata?): Bitmap? {
+        metadata ?: return null
+        return metadata.getBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART)
+            ?: metadata.getBitmap(MediaMetadata.METADATA_KEY_ART)
     }
 
-    private Bitmap getResizedRecommendationBitmap(Bitmap image, boolean isBanner, boolean lowRes) {
-        int maxWidth;
-        int maxHeight;
-        float f = 1.0f;
-        if (isBanner) {
-            maxWidth = this.mBannerMaxWidth;
-        } else {
-            maxWidth = (int) ((!lowRes ? 1.0f : 0.1f) * ((float) this.mCardMaxWidth));
-        }
-        if (isBanner) {
-            maxHeight = this.mBannerMaxHeight;
-        } else {
-            float f2 = (float) this.mCardMaxHeight;
-            if (lowRes) {
-                f = 0.1f;
-            }
-            maxHeight = (int) (f2 * f);
-        }
-        return Util.getSizeCappedBitmap(image, maxWidth, maxHeight);
-    }
+    private fun getBadgeIcon(metadata: MediaMetadata?): Bitmap? =
+        metadata?.getBitmap(MediaMetadata.METADATA_KEY_DISPLAY_ICON)
 
-    private int getColor(String packageName) {
-        if (TextUtils.isEmpty(packageName)) {
-            return this.mContext.getResources().getColor(R.color.notif_background_color);
-        }
-        PackageManager pkgMan = this.mContext.getPackageManager();
-        Intent intent = pkgMan.getLeanbackLaunchIntentForPackage(packageName);
-        if (intent == null) {
-            return this.mContext.getResources().getColor(R.color.notif_background_color);
-        }
-        ResolveInfo info = pkgMan.resolveActivity(intent, 0);
-        if (info == null) {
-            return this.mContext.getResources().getColor(R.color.notif_background_color);
-        }
-        int defaultColor = this.mContext.getResources().getColor(R.color.notif_background_color);
-        try {
-            Theme theme = this.mContext.createPackageContext(packageName, 0).getTheme();
-            theme.applyStyle(info.activityInfo.getThemeResource(), true);
-            TypedArray a = theme.obtainStyledAttributes(new int[]{16843827});
-            int color = a.getColor(0, defaultColor);
-            a.recycle();
-            return color;
-        } catch (NameNotFoundException e) {
-            Log.e("NowPlayCardListener", "Exception", e);
-            return defaultColor;
+    private fun getMetadataString(metadata: MediaMetadata?, key: String, default: String): String =
+        metadata?.getString(key) ?: default
+
+    private fun getMetadataLong(metadata: MediaMetadata?, key: String, default: Long): Long =
+        metadata?.getLong(key)?.takeIf { it != 0L } ?: default
+
+    private fun getApplicationLabel(packageName: String?): String? {
+        packageName ?: return null
+        return try {
+            val pm = context.packageManager
+            pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
         }
     }
 
-    private void setPendingIntentAndPackage(NowPlayingCardData data, MediaSessionManager sessionManager) {
-        data.clickIntent = null;
-        data.playerPackage = null;
-        List<MediaController> controllers = sessionManager.getActiveSessions(null);
-        MediaController controller = null;
-        for (int i = 0; i < controllers.size(); i++) {
-            MediaController aController = controllers.get(i);
-            if ((aController.getFlags() & 2) != 0) {
-                controller = aController;
-                break;
-            }
+    private fun getResizedBitmap(image: Bitmap?, isBanner: Boolean, lowRes: Boolean = false): Bitmap? {
+        val factor = if (lowRes) 0.1f else 1f
+        val maxW = if (isBanner) bannerMaxWidth else (cardMaxWidth * factor).toInt()
+        val maxH = if (isBanner) bannerMaxHeight else (cardMaxHeight * factor).toInt()
+        return Util.getSizeCappedBitmap(image, maxW, maxH)
+    }
+
+    private fun getColor(packageName: String?): Int {
+        val defaultColor = context.resources.getColor(R.color.notif_background_color, null)
+        if (packageName.isNullOrEmpty()) return defaultColor
+
+        val pm = context.packageManager
+        val intent = pm.getLeanbackLaunchIntentForPackage(packageName) ?: return defaultColor
+        val info = pm.resolveActivity(intent, 0) ?: return defaultColor
+
+        return try {
+            val theme = context.createPackageContext(packageName, 0).theme
+            theme.applyStyle(info.activityInfo.themeResource, true)
+            val a: TypedArray = theme.obtainStyledAttributes(intArrayOf(android.R.attr.colorPrimary))
+            val color = a.getColor(0, defaultColor)
+            a.recycle()
+            color
+        } catch (e: PackageManager.NameNotFoundException) {
+            Log.e(TAG, "Exception", e)
+            defaultColor
         }
-        if (controller != null) {
-            data.playerPackage = controller.getPackageName();
-            data.clickIntent = controller.getSessionActivity();
-            if (data.clickIntent == null) {
-                data.clickIntent = getPendingIntentFallback(data.playerPackage);
+    }
+
+    private fun setPendingIntentAndPackage(data: NowPlayingCardData, sessionManager: MediaSessionManager) {
+        data.clickIntent = null
+        data.playerPackage = null
+
+        val controller = sessionManager.getActiveSessions(null).firstOrNull { 
+            (it.flags.toInt() and 1) != 0
+        } ?: return
+
+        data.playerPackage = controller.packageName
+        data.clickIntent = controller.sessionActivity ?: getPendingIntentFallback(controller.packageName)
+    }
+
+    private fun getPendingIntentFallback(packageName: String): PendingIntent? {
+        val lbIntent = context.packageManager.getLeanbackLaunchIntentForPackage(packageName) ?: return null
+        lbIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+        lbIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        return PendingIntent.getActivity(context, 0, lbIntent, PendingIntent.FLAG_IMMUTABLE)
+    }
+
+    private fun generateArtwork(playerPackage: String?): Bitmap {
+        val appColor = getColor(playerPackage)
+        val color = Color.rgb(
+            (Color.red(appColor) * nowPlayingDefaultDarkening).toInt(),
+            (Color.green(appColor) * nowPlayingDefaultDarkening).toInt(),
+            (Color.blue(appColor) * nowPlayingDefaultDarkening).toInt()
+        )
+
+        val playIcon = context.resources.getDrawable(R.drawable.ic_now_playing_default, null)
+        val (width, height) = playIcon.intrinsicWidth to playIcon.intrinsicHeight
+        
+        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).apply {
+            eraseColor(color)
+            Canvas(this).also { canvas ->
+                playIcon.setBounds(Rect(0, 0, width, height))
+                playIcon.draw(canvas)
             }
         }
     }
 
-    private PendingIntent getPendingIntentFallback(String packageName) {
-        Intent lbIntent = this.mContext.getPackageManager().getLeanbackLaunchIntentForPackage(packageName);
-        if (lbIntent == null) {
-            return null;
-        }
-        lbIntent.addCategory("android.intent.category.LAUNCHER");
-        lbIntent.addFlags(270532608);
-        return PendingIntent.getActivity(this.mContext, 0, lbIntent, 134217728);
-    }
-
-    private Bitmap generateArtwork(String playerPackage) {
-        int appColor = getColor(playerPackage);
-        int color = Color.rgb((int) (((float) Color.red(appColor)) * this.mNowPlayingDefaultDarkening), (int) (((float) Color.green(appColor)) * this.mNowPlayingDefaultDarkening), (int) (((float) Color.blue(appColor)) * this.mNowPlayingDefaultDarkening));
-        Drawable playIcon = this.mContext.getResources().getDrawable(R.drawable.ic_now_playing_default);
-        int height = playIcon.getIntrinsicHeight();
-        int width = playIcon.getIntrinsicWidth();
-        Bitmap bmp = Bitmap.createBitmap(width, height, Config.ARGB_8888);
-        bmp.eraseColor(color);
-        Canvas canvas = new Canvas(bmp);
-        playIcon.setBounds(new Rect(0, 0, width, height));
-        playIcon.draw(canvas);
-        return bmp;
-    }
-
-    public void forceUpdate() {
-        if (this.mLastMediaController != null) {
-            updateMetadata(this.mLastMediaController.getMetadata());
-            updatePlayback(this.mLastMediaController.getPlaybackState());
+    fun forceUpdate() {
+        lastMediaController?.let {
+            updateMetadata(it.metadata)
+            updatePlayback(it.playbackState)
         }
     }
 
-    public void checkForMediaSession() {
-        MediaSessionManager manager = (MediaSessionManager) this.mContext.getApplicationContext().getSystemService("media_session");
-        if (manager != null) {
-            if (!this.mIsTestRunning) {
-                new MediaSession(this.mContext.getApplicationContext(), "NowPlayCardListener").release();
+    fun checkForMediaSession() {
+        val manager = context.applicationContext.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
+        manager?.let {
+            if (!isTestRunning) {
+                android.media.session.MediaSession(context.applicationContext, "NowPlayCardListener").release()
             }
-            onActiveSessionsChanged(manager.getActiveSessions(null));
+            onActiveSessionsChanged(it.getActiveSessions(null))
         }
+    }
+
+    companion object {
+        private const val TAG = "NowPlayCardListener"
     }
 }

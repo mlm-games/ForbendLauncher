@@ -1,69 +1,43 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-import android.util.SparseArray;
+import android.util.SparseArray
+import java.util.Date
 
-import java.util.Date;
+class ActiveDayBuffer(private val length: Int) {
+    private val buffer = SparseArray<Signals>(length + 1)
+    private var dirty = true
+    private var cachedScore = -1.0
 
-class ActiveDayBuffer {
-    protected final SparseArray<Signals> mBuffer;
-    protected boolean mDirty = true;
-    protected final int mLength;
-    protected double mScore = -1.0d;
-
-    public ActiveDayBuffer(int length) {
-        this.mLength = length;
-        this.mBuffer = new SparseArray(length + 1);
+    operator fun set(date: Date, value: Signals) {
+        buffer.put(DateUtil.getDay(date), value)
+        while (buffer.size() > length) buffer.removeAt(0)
+        dirty = true
     }
 
-    public void set(Date date, Signals value) {
-        this.mBuffer.put(DateUtil.getDay(date), value);
-        while (this.mBuffer.size() > this.mLength) {
-            this.mBuffer.removeAt(0);
+    operator fun get(date: Date): Signals? = buffer[DateUtil.getDay(date)]
+    
+    fun getAt(index: Int): Signals? = 
+        if (index in 0 until buffer.size()) buffer.valueAt(index) else null
+    
+    fun getDayAt(index: Int): Int = 
+        if (index in 0 until buffer.size()) buffer.keyAt(index) else -1
+
+    fun size() = length
+    fun hasData() = buffer.size() > 0
+
+    fun getAggregatedScore(aggregator: Aggregator<Signals>): Double {
+        if (!dirty) return cachedScore
+        
+        aggregator.reset()
+        if (buffer.size() == 0) {
+            cachedScore = Ranker.getGroupStarterScore()
+        } else {
+            repeat(buffer.size()) { i ->
+                aggregator.add(DateUtil.getDate(buffer.keyAt(i))!!, buffer.valueAt(i))
+            }
+            cachedScore = aggregator.getAggregatedScore()
         }
-        this.mDirty = true;
-    }
-
-    public int size() {
-        return this.mLength;
-    }
-
-    public Signals get(Date date) {
-        return this.mBuffer.get(DateUtil.getDay(date));
-    }
-
-    public Signals getAt(int index) {
-        if (index < 0 || index >= this.mBuffer.size()) {
-            return null;
-        }
-        return this.mBuffer.valueAt(index);
-    }
-
-    public int getDayAt(int index) {
-        if (index < 0 || index >= this.mBuffer.size()) {
-            return -1;
-        }
-        return this.mBuffer.keyAt(index);
-    }
-
-    public boolean hasData() {
-        return this.mBuffer.size() > 0;
-    }
-
-    public double getAggregatedScore(Aggregator<Signals> aggregator) {
-        if (!this.mDirty) {
-            return this.mScore;
-        }
-        aggregator.reset();
-        if (this.mBuffer.size() == 0) {
-            this.mScore = Ranker.getGroupStarterScore();
-            this.mDirty = false;
-            return this.mScore;
-        }
-        for (int i = 0; i < this.mBuffer.size(); i++) {
-            aggregator.add(DateUtil.getDate(this.mBuffer.keyAt(i)), this.mBuffer.valueAt(i));
-        }
-        this.mScore = aggregator.getAggregatedScore();
-        this.mDirty = false;
-        return this.mScore;
+        dirty = false
+        return cachedScore
     }
 }

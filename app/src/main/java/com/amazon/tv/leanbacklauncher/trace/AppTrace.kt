@@ -1,24 +1,17 @@
-package com.amazon.tv.leanbacklauncher.trace;
+package com.amazon.tv.leanbacklauncher.trace
 
-public final class AppTrace {
+object AppTrace {
+    interface TraceTag
 
-    static String TAG = "AppTrace";
-
-    public interface TraceTag {
+    fun beginSection(section: String) {
+        // Debug logging if needed: Log.d("AppTrace", section)
     }
 
-    public static void beginSection(String section) {
-        // if (BuildConfig.DEBUG) Log.d(TAG, section);
+    fun endSection() {
+        // Debug logging if needed
     }
 
-    public static void endSection() {
-        // if (BuildConfig.DEBUG) Log.d(TAG, "endSection");
-    }
+    fun beginAsyncSection(section: String): TraceTag? = null
 
-    public static TraceTag beginAsyncSection(String section) {
-        return null;
-    }
-
-    public static void endAsyncSection(TraceTag tag) {
-    }
+    fun endAsyncSection(tag: TraceTag?) {}
 }

@@ -1,262 +1,139 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.TimeInterpolator;
-import android.animation.ValueAnimator;
-import android.util.Log;
-import android.view.View;
+import android.animation.ValueAnimator
+import android.view.View
 
-import com.amazon.tv.leanbacklauncher.util.Preconditions;
+abstract class PropagatingAnimator<VH : PropagatingAnimator.ViewHolder>(
+    initialCapacity: Int = 10
+) : ValueAnimator(), Resettable {
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
-
-public abstract class PropagatingAnimator<VH extends PropagatingAnimator.ViewHolder> extends ValueAnimator implements Resettable {
-    private static final Propagation<?> sDefaultPropagation = new NoPropagation();
-    private final PropagatingAnimatorListener mListener;
-    private long mMaxStartDelay;
-    private boolean mNormalized;
-    private Propagation<VH> mPropagation;
-    private byte mState;
-    private final ArrayList<VH> mViews;
-
-    public static abstract class ViewHolder {
-        long normalizedStartDelay;
-        long rawStartDelay;
-        protected final View view;
-
-        protected ViewHolder(View view) {
-            this.view = Preconditions.checkNotNull(view);
-        }
-
-        public String toString() {
-            return this.view.getClass().getSimpleName() + '@' + Integer.toHexString(System.identityHashCode(this.view));
-        }
+    open class ViewHolder(val view: View) {
+        var rawStartDelay: Long = 0
+        var normalizedStartDelay: Long = 0
     }
 
-    public interface Propagation<VH extends ViewHolder> {
-        long getStartDelay(VH vh);
+    fun interface Propagation<VH : ViewHolder> {
+        fun getStartDelay(holder: VH): Long
     }
 
-    private static final class NoPropagation<VH extends ViewHolder> implements Propagation<VH> {
-        private NoPropagation() {
-        }
+    private val views = ArrayList<VH>(initialCapacity)
+    private var propagation: Propagation<VH> = Propagation { 0 }
+    private var maxStartDelay = 0L
+    private var normalized = false
+    private var state: Byte = STATE_IDLE
 
-        public long getStartDelay(VH vh) {
-            return 0;
-        }
+    init {
+        setFloatValues(0f, 1f)
+        addUpdateListener { onUpdate() }
+        addListener(
+            onStart = { state = STATE_RUNNING },
+            onCancel = { state = STATE_FINISHED; reset() },
+            onEnd = { state = STATE_FINISHED }
+        )
     }
 
-    private final class PropagatingAnimatorListener extends AnimatorListenerAdapter implements AnimatorUpdateListener {
-        private PropagatingAnimatorListener() {
-        }
+    protected abstract fun onSetupStartValues(holder: VH)
+    protected abstract fun onUpdateView(holder: VH, fraction: Float)
+    protected abstract fun onResetView(holder: VH)
 
-        public void onAnimationStart(Animator animation) {
-            PropagatingAnimator.this.mState = (byte) 8;
-        }
+    fun setPropagation(propagation: Propagation<VH>) = apply { this.propagation = propagation }
 
-        public void onAnimationUpdate(ValueAnimator animation) {
-            TimeInterpolator interpolator = PropagatingAnimator.this.getInterpolator();
-            long duration = PropagatingAnimator.this.getChildAnimationDuration();
-            long totalPlayTime = PropagatingAnimator.this.getCurrentPlayTime();
-            int n = PropagatingAnimator.this.mViews.size();
-            for (int i = 0; i < n; i++) {
-                VH holder = PropagatingAnimator.this.mViews.get(i);
-                float fraction = ((float) (totalPlayTime - holder.normalizedStartDelay)) / ((float) duration);
-                if (fraction >= 0.0f) {
-                    if (fraction > 1.0f) {
-                        fraction = 1.0f;
-                    }
-                    PropagatingAnimator.this.onUpdateView(holder, interpolator.getInterpolation(fraction));
-                }
+    fun addView(holder: VH) = apply {
+        views.add(holder)
+        holder.rawStartDelay = propagation.getStartDelay(holder)
+        normalized = false
+        
+        when {
+            isStarted -> {
+                normalizeStartDelays()
+                val fraction = ((currentPlayTime - holder.normalizedStartDelay).toFloat() / childAnimationDuration)
+                    .coerceIn(0f, 1f)
+                if (fraction <= 0f) onSetupStartValues(holder) 
+                else onUpdateView(holder, interpolator.getInterpolation(fraction))
             }
-        }
-
-        public void onAnimationCancel(Animator animation) {
-            PropagatingAnimator.this.mState = (byte) 16;
-            PropagatingAnimator.this.reset();
-        }
-
-        public void onAnimationEnd(Animator animation) {
-            PropagatingAnimator.this.mState = (byte) 16;
-            PropagatingAnimator.this.removeListener();
+            state == STATE_SETUP -> onSetupStartValues(holder)
         }
     }
 
-    protected abstract void onResetView(VH vh);
-
-    protected abstract void onSetupStartValues(VH vh);
-
-    protected abstract void onUpdateView(VH vh, float f);
-
-    protected PropagatingAnimator() {
-        this.mViews = new ArrayList();
-        this.mListener = new PropagatingAnimatorListener();
-        this.mPropagation = (Propagation<VH>) sDefaultPropagation;
-        this.mState = (byte) 1;
-        setFloatValues(0.0f, 1.0f);
-        addListener();
-    }
-
-    protected PropagatingAnimator(int initialCapacity) {
-        this();
-        this.mViews.ensureCapacity(initialCapacity);
-    }
-
-    public PropagatingAnimator<VH> setPropagation(Propagation<VH> propagation) {
-        this.mPropagation = Preconditions.checkNotNull(propagation);
-        return this;
-    }
-
-    public PropagatingAnimator<VH> addView(VH holder) {
-        this.mViews.add(Preconditions.checkNotNull(holder));
-        holder.rawStartDelay = getStartDelay(holder);
-        this.mNormalized = false;
-        if (isStarted()) {
-            normalizeStartDelays();
-            float fraction = ((float) (getCurrentPlayTime() - holder.normalizedStartDelay)) / ((float) getChildAnimationDuration());
-            if (fraction <= 0.0f) {
-                onSetupStartValues(holder);
-            } else {
-                if (fraction > 1.0f) {
-                    fraction = 1.0f;
-                }
-                onUpdateView(holder, getInterpolator().getInterpolation(fraction));
-            }
-        } else if (this.mState == (byte) 2) {
-            onSetupStartValues(holder);
+    fun removeView(index: Int): VH {
+        val holder = views.removeAt(index)
+        if (holder.normalizedStartDelay == 0L || holder.normalizedStartDelay == maxStartDelay) {
+            normalized = false
         }
-        return this;
+        if (isStarted) normalizeStartDelays()
+        if (state == STATE_SETUP || state == STATE_FINISHED) onResetView(holder)
+        return holder
     }
 
-    public VH removeView(int index) {
-        VH holder = this.mViews.remove(index);
-        long startDelay = holder.normalizedStartDelay;
-        if (startDelay == 0 || startDelay == this.mMaxStartDelay) {
-            this.mNormalized = false;
-        }
-        if (isStarted()) {
-            if (!this.mNormalized) {
-                normalizeStartDelays();
-            }
-            onResetView(holder);
-        } else if (this.mState == (byte) 2 || this.mState == (byte) 16) {
-            onResetView(holder);
-        }
-        return holder;
+    protected fun invalidateView(holder: VH) {
+        holder.rawStartDelay = propagation.getStartDelay(holder)
+        normalized = false
+        if (isStarted) normalizeStartDelays()
     }
 
-    protected final void invalidateView(VH holder) {
-        holder.rawStartDelay = getStartDelay(holder);
-        this.mNormalized = false;
-        if (isStarted()) {
-            normalizeStartDelays();
+    fun getView(index: Int) = views[index]
+    fun size() = views.size
+
+    val childAnimationDuration: Long
+        get() {
+            if (!normalized) normalizeStartDelays()
+            return duration - maxStartDelay
+        }
+
+    override fun reset() {
+        if (state == STATE_SETUP || state == STATE_RUNNING) {
+            cancel()
+            return
+        }
+        views.forEach { onResetView(it) }
+        state = STATE_RESET
+    }
+
+    override fun setDuration(duration: Long): PropagatingAnimator<VH> {
+        check(!isStarted) { "Can't alter duration after start" }
+        super.setDuration(duration)
+        views.forEach { invalidateView(it) }
+        return this
+    }
+
+    override fun start() {
+        if (!normalized) normalizeStartDelays()
+        setupStartValues()
+        state = STATE_SETUP
+        super.start()
+    }
+
+    override fun setupStartValues() {
+        if (state != STATE_SETUP) {
+            views.forEach { onSetupStartValues(it) }
+            state = STATE_SETUP
         }
     }
 
-    public VH getView(int index) {
-        return this.mViews.get(index);
+    private fun normalizeStartDelays() {
+        normalized = true
+        if (views.isEmpty()) {
+            maxStartDelay = 0
+            return
+        }
+        val minRawDelay = views.minOf { it.rawStartDelay }
+        maxStartDelay = views.maxOf { (it.rawStartDelay - minRawDelay).also { d -> it.normalizedStartDelay = it.rawStartDelay - minRawDelay } }
     }
 
-    public int size() {
-        return this.mViews.size();
-    }
-
-    public long getChildAnimationDuration() {
-        if (!this.mNormalized) {
-            normalizeStartDelays();
-        }
-        return getDuration() - this.mMaxStartDelay;
-    }
-
-    public void reset() {
-        if (this.mState == (byte) 4 || this.mState == (byte) 8) {
-            StringWriter buf = new StringWriter();
-            PrintWriter writer = new PrintWriter(buf);
-            writer.println("Reset while started");
-            new Exception("stack trace").printStackTrace(writer);
-            writer.println(toString());
-            Log.w("Animations", buf.toString());
-            cancel();
-            return;
-        }
-        int n = this.mViews.size();
-        for (int i = 0; i < n; i++) {
-            onResetView(this.mViews.get(i));
-        }
-        this.mState = (byte) 32;
-    }
-
-    public PropagatingAnimator<VH> setDuration(long duration) {
-        if (isStarted()) {
-            throw new IllegalStateException("Can't alter the duration after start");
-        }
-        super.setDuration(duration);
-        int n = this.mViews.size();
-        for (int i = 0; i < n; i++) {
-            invalidateView(this.mViews.get(i));
-        }
-        this.mNormalized = false;
-        return this;
-    }
-
-    public void start() {
-        if (!this.mNormalized) {
-            normalizeStartDelays();
-        }
-        setupStartValues();
-        this.mState = (byte) 4;
-        super.start();
-    }
-
-    public void setupStartValues() {
-        if (this.mState != (byte) 2) {
-            int n = this.mViews.size();
-            for (int i = 0; i < n; i++) {
-                onSetupStartValues(this.mViews.get(i));
-            }
-            this.mState = (byte) 2;
+    private fun onUpdate() {
+        val duration = childAnimationDuration
+        val totalPlayTime = currentPlayTime
+        views.forEach { holder ->
+            val fraction = ((totalPlayTime - holder.normalizedStartDelay).toFloat() / duration).coerceIn(0f, 1f)
+            if (fraction >= 0f) onUpdateView(holder, interpolator.getInterpolation(fraction))
         }
     }
 
-    private long getStartDelay(VH holder) {
-        long startDelay = this.mPropagation.getStartDelay(holder);
-        if (startDelay >= 0 && startDelay < getDuration()) {
-            return startDelay;
-        }
-        throw new UnsupportedOperationException(String.format("Illegal start delay returned by %s: %d", this.mPropagation, Long.valueOf(startDelay)));
-    }
-
-    private void normalizeStartDelays() {
-        int i;
-        this.mNormalized = true;
-        int n = this.mViews.size();
-        long minRawDelay = Long.MAX_VALUE;
-        for (i = 0; i < n; i++) {
-            minRawDelay = Math.min(minRawDelay, (this.mViews.get(i)).rawStartDelay);
-        }
-        this.mMaxStartDelay = n == 0 ? 0 : Long.MIN_VALUE;
-        for (i = 0; i < n; i++) {
-            ViewHolder holder = this.mViews.get(i);
-            long normalizedDelay = holder.rawStartDelay - minRawDelay;
-            this.mMaxStartDelay = Math.max(this.mMaxStartDelay, normalizedDelay);
-            holder.normalizedStartDelay = normalizedDelay;
-        }
-    }
-
-    private void addListener() {
-        addListener(this.mListener);
-        addUpdateListener(this.mListener);
-    }
-
-    private void removeListener() {
-        removeListener(this.mListener);
-        removeUpdateListener(this.mListener);
-    }
-
-    public String toString() {
-        return "PropagatingAnimator@" + Integer.toHexString(hashCode());
+    companion object {
+        private const val STATE_IDLE: Byte = 1
+        private const val STATE_SETUP: Byte = 2
+        private const val STATE_RUNNING: Byte = 8
+        private const val STATE_FINISHED: Byte = 16
+        private const val STATE_RESET: Byte = 32
     }
 }

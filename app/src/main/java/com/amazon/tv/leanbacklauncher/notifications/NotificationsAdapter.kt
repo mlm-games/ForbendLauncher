@@ -1,604 +1,308 @@
-package com.amazon.tv.leanbacklauncher.notifications;
+package com.amazon.tv.leanbacklauncher.notifications
 
-import android.app.PendingIntent;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Message;
-import android.os.RemoteException;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.app.PendingIntent
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import com.amazon.tv.leanbacklauncher.LauncherViewHolder
+import com.amazon.tv.leanbacklauncher.MainActivity.IdleListener
+import com.amazon.tv.leanbacklauncher.OpaqueBitmapTransformation
+import com.amazon.tv.leanbacklauncher.R
+import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.ActionOpenLaunchPointListener
+import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration
+import com.amazon.tv.leanbacklauncher.core.LaunchException
+import com.amazon.tv.leanbacklauncher.util.Util
+import com.amazon.tv.tvrecommendations.IRecommendationsService
+import com.amazon.tv.tvrecommendations.TvRecommendation
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.RequestOptions
+import kotlinx.coroutines.*
+import java.lang.ref.WeakReference
+import java.util.concurrent.ConcurrentLinkedQueue
 
-import androidx.core.content.ContextCompat;
+open class NotificationsAdapter(context: Context, override val isPartnerClient: Boolean = false) :
+    NotificationsServiceAdapter<NotificationsAdapter.NotifViewHolder>(context, 300000, 600000),
+    IdleListener, ActionOpenLaunchPointListener {
 
-import com.amazon.tv.leanbacklauncher.BuildConfig;
-import com.amazon.tv.leanbacklauncher.LauncherViewHolder;
-import com.amazon.tv.leanbacklauncher.MainActivity.IdleListener;
-import com.amazon.tv.leanbacklauncher.OpaqueBitmapTransformation;
-import com.amazon.tv.leanbacklauncher.R;
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.ActionOpenLaunchPointListener;
-import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration;
-import com.amazon.tv.leanbacklauncher.core.LaunchException;
-import com.amazon.tv.leanbacklauncher.trace.AppTrace;
-import com.amazon.tv.leanbacklauncher.trace.AppTrace.TraceTag;
-import com.amazon.tv.leanbacklauncher.util.Util;
-import com.amazon.tv.tvrecommendations.IRecommendationsService;
-import com.amazon.tv.tvrecommendations.TvRecommendation;
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestManager;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestOptions;
+    private val inflater = LayoutInflater.from(context)
+    private val impressionDelay = context.resources.getInteger(R.integer.impression_delay)
+    private val richRecommendationViewSupported = LauncherConfiguration.instance?.isRichRecommendationViewEnabled == true
+    private val legacyRecommendationLayoutSupported = LauncherConfiguration.instance?.isLegacyRecommendationLayoutEnabled == true
 
-import java.lang.ref.WeakReference;
-import java.util.LinkedList;
+    private val glideRequestManager = Glide.with(context)
+    private val glideOptions = RequestOptions()
+        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+        .transform(OpaqueBitmapTransformation(context, 
+            ContextCompat.getColor(context, R.color.notif_background_color)))
 
-public class NotificationsAdapter extends NotificationsServiceAdapter<NotificationsAdapter.NotifViewHolder> implements IdleListener, ActionOpenLaunchPointListener {
-    private static final String TAG = (BuildConfig.DEBUG) ? "[*]" + "NotificationsAdapter" : "NotificationsAdapter";
-    private final CardUpdateController mCardUpdateController = new CardUpdateController();
-    private final RequestOptions mGlideOptions;
-    private final RequestManager mGlideRequestManager;
-    // private boolean mHasNowPlayingCard;
-    private final int mImpressionDelay;
-    private final Handler mImpressionHandler = new ImpressionHandler(this);
-    private final LayoutInflater mInflater;
-    private boolean mIsIdle;
-    private final boolean mLegacyRecommendationLayoutSupported;
-    // private final NowPlayCardListener mNowPlayCardListener;
-    //private NowPlayingCardData mNowPlayingData;
-    //private long mNowPlayingPosMs;
-    //private long mNowPlayingPosUpdateMs;
-    //private int mNowPlayingState;
-    private final RecommendationsHandler mRecommendationsHandler = new RecommendationsHandler(this);
-    private final boolean mRichRecommendationViewSupported;
+    private val cardUpdateController = CardUpdateController()
+    private val impressionHandler = ImpressionHandler(this)
+    private val recommendationsHandler = RecommendationsHandler(this)
+    
+    private var isIdle = false
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    private static class CardUpdateController {
-        private boolean mIsConnected = false;
-        private final LinkedList<NotifViewHolder> mWaitingConnectionNofification = new LinkedList();
+    override fun onActionOpenLaunchPoint(component: String?, group: String?) {
+        super.serviceOnActionOpenLaunchPoint(component, group)
+    }
 
-        public void onDisconnected() {
-            this.mIsConnected = false;
-        }
+    override fun serviceStatusChanged(isReady: Boolean) {
+        super.serviceStatusChanged(isReady)
+        cardUpdateController.onServiceStatusChanged(isReady)
+    }
 
-        public void onServiceStatusChanged(boolean isReady) {
-            synchronized (this) {
-                this.mIsConnected = isReady;
-                if (isReady) {
-                    for (NotifViewHolder notifViewHolder : this.mWaitingConnectionNofification) {
-                        if (notifViewHolder.mQueuedState == 1) {
-                            notifViewHolder.executeImageTask();
-                            notifViewHolder.mQueuedState = 0;
-                        } else {
-                            notifViewHolder.mQueuedState = 3;
-                        }
-                    }
-                    this.mWaitingConnectionNofification.clear();
-                }
+    override fun onServiceDisconnected() {
+        super.onServiceDisconnected()
+        cardUpdateController.onDisconnected()
+    }
+
+    override fun onStopUi() {
+        cardUpdateController.onDisconnected()
+        super.onStopUi()
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        val rec = getRecommendation(position)
+        return if (rec?.packageName == "android") VIEW_TYPE_CAPTIVE_PORTAL else VIEW_TYPE_RECOMMENDATION
+    }
+
+//    override fun getNonNotifItemCount() = 0
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NotifViewHolder {
+        val view = when (viewType) {
+            VIEW_TYPE_RECOMMENDATION -> createRecommendationCardView(parent)
+            VIEW_TYPE_CAPTIVE_PORTAL -> CaptivePortalNotificationCardView(parent.context)
+            else -> {
+                Log.e(TAG, "Invalid view type = $viewType")
+                return NotifViewHolder(View(parent.context))
             }
         }
+        return NotifViewHolder(view)
+    }
 
-        public boolean queueImageFetchIfDisconnected(NotifViewHolder notifViewHolder) {
-            boolean z = true;
-            synchronized (this) {
-                if (this.mIsConnected) {
-                    z = false;
-                } else {
-                    if (notifViewHolder.mQueuedState == 0) {
-                        this.mWaitingConnectionNofification.add(notifViewHolder);
-                        notifViewHolder.mQueuedState = 1;
-                    }
-                }
-            }
-            return z;
-        }
-
-        public void onViewAttachedToWindow(NotifViewHolder notifViewHolder) {
-            synchronized (this) {
-                if (this.mIsConnected) {
-                    if (notifViewHolder.mQueuedState == 3) {
-                        notifViewHolder.executeImageTask();
-                        notifViewHolder.mQueuedState = 0;
-                    }
-                } else if (notifViewHolder.mQueuedState == 2) {
-                    notifViewHolder.mQueuedState = 1;
-                }
-            }
-        }
-
-        public void onViewDetachedFromWindow(NotifViewHolder notifViewHolder) {
-            synchronized (this) {
-                if (!this.mIsConnected && notifViewHolder.mQueuedState == 1) {
-                    notifViewHolder.mQueuedState = 2;
-                }
-            }
+    private fun createRecommendationCardView(parent: ViewGroup): View {
+        check(richRecommendationViewSupported) { "Unsupported device capabilities" }
+        return if (legacyRecommendationLayoutSupported) {
+            inflater.inflate(R.layout.notification_card, parent, false)
+        } else {
+            RecCardView(parent.context)
         }
     }
 
-    private static class ImpressionHandler extends Handler {
-        private final WeakReference<NotificationsAdapter> mAdapterRef;
 
-        public ImpressionHandler(NotificationsAdapter adapter) {
-            this.mAdapterRef = new WeakReference(adapter);
-        }
-
-        public void handleMessage(Message msg) {
-            NotificationsAdapter adapter = this.mAdapterRef.get();
-            if (adapter != null && msg.what == 11 && !adapter.mIsIdle) {
-                NotifViewHolder holder = (NotifViewHolder) msg.obj;
-                PendingIntent intent = holder.getPendingIntent();
-                if (intent != null) {
-                    adapter.onActionRecommendationImpression(intent, holder.getGroup());
-                }
-            }
-        }
+    override fun onBindViewHolder(holder: NotifViewHolder, position: Int) {
+        if (position >= itemCount) return
+        getRecommendation(position)?.let { holder.init(it) }
     }
 
-    static class NotifViewHolder extends LauncherViewHolder {
-        FetchImageTask mImageTask;
-        int mQueuedState = 0;
-        TvRecommendation mRecommendation;
-        RecView mRecView;
-        boolean mUseGlide;
-        final /* synthetic */ NotificationsAdapter adapter;
+    override fun onViewAttachedToWindow(holder: NotifViewHolder) {
+        super.onViewAttachedToWindow(holder)
+        impressionHandler.sendMessageDelayed(
+            Message.obtain().apply { what = MSG_IMPRESSION; obj = holder },
+            impressionDelay.toLong()
+        )
+        cardUpdateController.onViewAttachedToWindow(holder)
+    }
 
-        private class FetchImageTask extends AsyncTask<String, Void, Bitmap> {
-            private final TraceTag mTraceTag;
+    override fun onViewDetachedFromWindow(holder: NotifViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        impressionHandler.removeMessages(MSG_IMPRESSION, holder)
+        cardUpdateController.onViewDetachedFromWindow(holder)
+        holder.itemView.clearAnimation()
+    }
 
-            public FetchImageTask(TraceTag traceTag) {
-                this.mTraceTag = traceTag;
+
+    override fun onNotificationClick(intent: PendingIntent?, group: String?) {
+        intent?.let { super.onActionRecommendationClick(it, group) }
+    }
+
+    override fun onIdleStateChange(isIdle: Boolean) {
+        this.isIdle = isIdle
+        super.onIdleStateChange(isIdle)
+    }
+
+    override fun onVisibilityChange(isVisible: Boolean) {
+        isIdle = !isVisible
+        super.onVisibilityChange(isVisible)
+    }
+
+    inner class NotifViewHolder(v: View) : LauncherViewHolder(v) {
+        private val recView = v as? RecView
+        private val useGlide = recView != null && recView !is CaptivePortalNotificationCardView
+        
+        var recommendation: TvRecommendation? = null
+            private set
+        var queuedState = QUEUE_STATE_NONE
+
+        private var imageJob: Job? = null
+
+        fun init(rec: TvRecommendation) {
+            itemView.visibility = View.VISIBLE
+            val refreshSameContent = NotificationUtils.equals(rec, recommendation)
+            
+            when (recView) {
+                is CaptivePortalNotificationCardView -> recView.setRecommendation(rec, !refreshSameContent)
+                is RecCardView -> recView.setRecommendation(rec, !refreshSameContent)
             }
+            
+            recommendation = rec
+            setLaunchColor(recView?.getLaunchAnimationColor() ?: 0)
+            queuedState = QUEUE_STATE_NONE
 
-            protected Bitmap doInBackground(String... params) {
-                String notifKey = params[0];
-                if (!NotifViewHolder.this.adapter.mCardUpdateController.queueImageFetchIfDisconnected(NotifViewHolder.this)) {
-                    Bitmap img = null;
-                    try {
-                        IRecommendationsService boundService = NotifViewHolder.this.adapter.mBoundService;
-                        if (boundService != null) {
-                            img = boundService.getImageForRecommendation(notifKey);
-                        }
-                        if (img != null) {
-                            return img;
-                        }
-                        NotifViewHolder.this.adapter.mCardUpdateController.queueImageFetchIfDisconnected(NotifViewHolder.this);
-                        return img;
-                    } catch (RemoteException e) {
-                        Log.e(TAG, "Exception while fetching card image", e);
-                    }
-                }
-                return null;
-            }
-
-            protected void onPostExecute(Bitmap image) {
-                if (!isCancelled()) {
-                    if (image != null) {
-                        NotifViewHolder.this.mRecView.setMainImage(new BitmapDrawable(NotifViewHolder.this.adapter.mContext.getResources(), image));
-                    }
-                    NotifViewHolder.this.mImageTask = null;
-                    AppTrace.endAsyncSection(this.mTraceTag);
-                }
-            }
-        }
-
-        public NotifViewHolder(NotificationsAdapter adapter, View v) {
-            super(v);
-
-            boolean z = false;
-            this.adapter = adapter;
-            if (v instanceof RecView) {
-                this.mRecView = (RecView) v;
-                if (!(this.mRecView instanceof CaptivePortalNotificationCardView)) {
-                    z = true;
-                }
-                this.mUseGlide = z;
-            }
-        }
-
-        void init(TvRecommendation rec) {
-            this.itemView.setVisibility(View.VISIBLE);
-            boolean refreshSameContent = NotificationUtils.equals(rec, this.mRecommendation);
-            if (this.mRecView instanceof CaptivePortalNotificationCardView) {
-                ((CaptivePortalNotificationCardView) this.mRecView).setRecommendation(rec, !refreshSameContent);
+            if (useGlide) {
+                recView?.setUseBackground(false)
+                recView?.onStartImageFetch()
+                glideRequestManager
+                    .asBitmap()
+                    .load(RecImageKey(rec))
+                    .apply(glideOptions)
+                    .into(recView!!)
             } else {
-                ((RecCardView) this.mRecView).setRecommendation(rec, !refreshSameContent);
-            }
-            this.mRecommendation = rec;
-            setLaunchColor(this.mRecView.getLaunchAnimationColor());
-            this.mQueuedState = 0;
-            if (this.mUseGlide) {
-                if (BuildConfig.DEBUG) Log.d(TAG, "Use glide for image");
-                this.mRecView.setUseBackground(false);
-                this.mRecView.onStartImageFetch();
-                this.adapter.mGlideRequestManager
-                        .asBitmap()
-                        .load(new RecImageKey(this.mRecommendation))
-                        .apply(this.adapter.mGlideOptions)
-                        .into(this.mRecView);
-                return;
-            }
-            this.mRecView.setUseBackground(true);
-            Bitmap contentImage = rec.getContentImage();
-            if (contentImage != null) {
-                this.mRecView.setMainImage(new BitmapDrawable(this.adapter.mContext.getResources(), contentImage));
-            }
-            if (!this.adapter.mCardUpdateController.queueImageFetchIfDisconnected(this)) {
-                executeImageTask();
-            }
-        }
-
-        private void executeImageTask() {
-            if (!this.mUseGlide) {
-                TraceTag traceTag = AppTrace.beginAsyncSection("RecImageFetch");
-                if (!(this.mImageTask == null || this.mImageTask.isCancelled())) {
-                    this.mImageTask.cancel(true);
+                recView?.setUseBackground(true)
+                rec.contentImage?.let {
+                    recView?.setMainImage(BitmapDrawable(mContext.resources, it))
                 }
-                this.mImageTask = new FetchImageTask(traceTag);
-                this.mImageTask.execute(this.mRecommendation.getKey());
-            }
-        }
-
-        public PendingIntent getPendingIntent() {
-            return this.mRecommendation != null ? this.mRecommendation.getContentIntent() : null;
-        }
-
-        public String getGroup() {
-            return this.mRecommendation != null ? this.mRecommendation.getGroup() : null;
-        }
-
-        protected void performLaunch() {
-            PendingIntent intent = getPendingIntent();
-            if (intent != null) {
-                try {
-                    Util.startActivity(this.adapter.mContext, intent);
-                    onLaunchSucceeded();
-                    onNotificationClick(intent);
-                } catch (Throwable t) {
-                    LaunchException launchException = new LaunchException("Could not launch notification intent", t);
-                }
-            } else {
-                throw new LaunchException("No notification intent to launch: " + this.mRecommendation);
-            }
-        }
-
-        protected void onNotificationClick(PendingIntent intent) {
-            this.adapter.onNotificationClick(intent, getGroup());
-            if (this.mRecommendation != null && this.mRecommendation.isAutoDismiss()) {
-                this.adapter.dismissNotification(this.mRecommendation);
-            }
-        }
-    }
-
-    /*private class NowPlayingViewHolder extends NotifViewHolder {
-        NowPlayingCardView mNowPlayingCard;
-
-        public NowPlayingViewHolder(View v) {
-            super(NotificationsAdapter.this, v);
-            this.mNowPlayingCard = (NowPlayingCardView) v;
-        }
-
-        public void init(NowPlayingCardData mediaData) {
-            this.itemView.setVisibility(0);
-            if (this.mNowPlayingCard != null) {
-                this.mNowPlayingCard.setNowPlayingContent(mediaData);
-                if (NotificationsAdapter.this.mBoundService != null) {
-                    //   this.mNowPlayingCard.setPlayerState(NotificationsAdapter.this.mNowPlayingState, NotificationsAdapter.this.mNowPlayingPosMs, NotificationsAdapter.this.mNowPlayingPosUpdateMs);
-                } else {
-                    //  this.mNowPlayingCard.stopSelfUpdate();
-                }
-                setLaunchColor(this.mNowPlayingCard.getLaunchAnimationColor());
-            }
-        }
-
-        public PendingIntent getPendingIntent() {
-            return this.mNowPlayingCard.getClickedIntent();
-        }
-
-        protected void onNotificationClick(PendingIntent intent) {
-        }
-    }*/
-
-    private static class RecommendationsHandler extends Handler {
-        private final WeakReference<NotificationsAdapter> mNotificationsAdapter;
-
-        public RecommendationsHandler(NotificationsAdapter adapter) {
-            this.mNotificationsAdapter = new WeakReference(adapter);
-        }
-
-        public void handleMessage(Message msg) {
-            boolean z = true;
-            NotificationsAdapter adapter = this.mNotificationsAdapter.get();
-            if (adapter != null) {
-                switch (msg.what) {
-                    case 6:
-                        adapter.remoteControllerClientChanged(msg.arg1 != 0);
-                        return;
-                    case 7:
-                        if (msg.obj != null) {
-                            // adapter.remoteControllerMediaDataUpdated((NowPlayingCardData) msg.obj);
-                            return;
-                        }
-                        return;
-                    case 8:
-                        if (msg.obj != null) {
-                            long[] values = (long[]) msg.obj;
-                            adapter.remoteControllerClientPlaybackStateUpdate((int) values[0], values[1], values[2]);
-                            return;
-                        }
-                        return;
-                    case 9:
-                        if (msg.arg1 == 0) {
-                            z = false;
-                        }
-                        //    adapter.updateNowPlayingCard(z);
-                        return;
-                    case 10:
-                        // if (adapter.mHasNowPlayingCard) {
-                        //     adapter.mHasNowPlayingCard = false;
-                        //     adapter.notifyNonNotifItemRemoved(0);
-                        //     return;
-                        // }
-                        return;
-                    default:
-                        return;
+                if (!cardUpdateController.queueImageFetchIfDisconnected(this)) {
+                    executeImageTask()
                 }
             }
         }
-    }
 
-    public NotificationsAdapter(Context context) {
-        super(context, 300000, 600000);
-        // this.mNowPlayCardListener = new NowPlayCardListener(context);
-        this.mImpressionDelay = context.getResources().getInteger(R.integer.impression_delay);
-        this.mInflater = (LayoutInflater) this.mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        this.mRichRecommendationViewSupported = LauncherConfiguration.getInstance().isRichRecommendationViewEnabled();
-        this.mLegacyRecommendationLayoutSupported = LauncherConfiguration.getInstance().isLegacyRecommendationLayoutEnabled();
-        this.mGlideRequestManager = Glide.with(this.mContext);
-        this.mGlideOptions = new RequestOptions()
-                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                .transform(new OpaqueBitmapTransformation(
-                        this.mContext, ContextCompat.getColor(context, R.color.notif_background_color))
-                );
-    }
-
-    public void onActionOpenLaunchPoint(String component, String group) {
-        super.serviceOnActionOpenLaunchPoint(component, group);
-    }
-
-    public void onClientChanged(boolean clearing) {
-        int i;
-        RecommendationsHandler recommendationsHandler = this.mRecommendationsHandler;
-        RecommendationsHandler recommendationsHandler2 = this.mRecommendationsHandler;
-        if (clearing) {
-            i = 1;
-        } else {
-            i = 0;
-        }
-        recommendationsHandler.sendMessage(recommendationsHandler2.obtainMessage(6, i, 0));
-    }
-
-    // public void onMediaDataUpdated(NowPlayingCardData mediaData) {
-    //    this.mRecommendationsHandler.sendMessage(this.mRecommendationsHandler.obtainMessage(7, mediaData));
-    // }
-
-    public void onClientPlaybackStateUpdate(int state, long stateChangeTimeMs, long currentPosMs) {
-        this.mRecommendationsHandler.sendMessage(this.mRecommendationsHandler.obtainMessage(8, new long[]{(long) state, stateChangeTimeMs, currentPosMs}));
-    }
-
-    protected boolean isPartnerClient() {
-        return false;
-    }
-
-    protected void onServiceConnected(IRecommendationsService service) {
-        //if (this.mHasNowPlayingCard) {
-        //    this.mRecommendationsHandler.sendEmptyMessageDelayed(10, 1500);
-        //}
-        super.onServiceConnected(service);
-        /*try {
-            this.mNowPlayCardListener.setRemoteControlListener(this);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Exception", e);
-        }*/
-    }
-
-    protected void serviceStatusChanged(boolean isReady) {
-        super.serviceStatusChanged(isReady);
-        this.mCardUpdateController.onServiceStatusChanged(isReady);
-    }
-
-    protected void onServiceDisconnected() {
-        super.onServiceDisconnected();
-        this.mCardUpdateController.onDisconnected();
-    }
-
-    public void onInitUi() {
-        super.onInitUi();
-    }
-
-    public void onStopUi() {
-        this.mCardUpdateController.onDisconnected();
-        super.onStopUi();
-        //  this.mNowPlayCardListener.setRemoteControlListener(null);
-        //if (this.mHasNowPlayingCard) {
-        //    notifyNonNotifItemChanged(0);
-        //}
-        super.onStopUi();
-    }
-
-    public int getItemViewType(int position) {
-        //if (this.mHasNowPlayingCard && position == 0) {
-        //    return 1;
-        //}
-        if (getRecommendation(position) == null || !getRecommendation(position).getPackageName().equals("android")) {
-            return 0;
-        }
-        return 2;
-    }
-
-    protected int getNonNotifItemCount() {
-        //if (this.mHasNowPlayingCard) {
-        //    return 1;
-        //}
-        return 0;
-    }
-
-    public NotifViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        NotifViewHolder notifViewHolder;
-        switch (viewType) {
-            case 0:
-                AppTrace.beginSection("onCreateRecCard");
-                try {
-                    notifViewHolder = new NotifViewHolder(this, createRecommendationCardView(parent));
-                    return notifViewHolder;
-                } finally {
-                    AppTrace.endSection();
-                }
-            case 1:
-                AppTrace.beginSection("onCreateNowPlayingCard");
-                try {
-                    //notifViewHolder = new NowPlayingViewHolder(new NowPlayingCardView(parent.getContext()));
-                    //  return notifViewHolder;
-                } finally {
-                    AppTrace.endSection();
-                }
-            case 2:
-                AppTrace.beginSection("onCreateCaptivePortalCard");
-                try {
-                    notifViewHolder = new NotifViewHolder(this, new CaptivePortalNotificationCardView(parent.getContext()));
-                    return notifViewHolder;
-                } finally {
-                    AppTrace.endSection();
-                }
-            default:
-                Log.e(TAG, "Invalid view type = " + viewType);
-                return null;
-        }
-    }
-
-    protected View createRecommendationCardView(ViewGroup parent) {
-        if (!this.mRichRecommendationViewSupported) {
-            throw new UnsupportedOperationException("Unsupported device capabilities");
-        } else if (this.mLegacyRecommendationLayoutSupported) {
-            return this.mInflater.inflate(R.layout.notification_card, parent, false);
-        } else {
-            return new RecCardView(parent.getContext());
-        }
-    }
-
-    public void onBindViewHolder(NotifViewHolder holder, int position) {
-        if (position < getItemCount()) {
-            int type = getItemViewType(position);
-            switch (type) {
-                case 0:
-                case 2:
-                    AppTrace.beginSection("onBindRecCard");
+        fun executeImageTask() {
+            if (useGlide) return
+            
+            imageJob?.cancel()
+            imageJob = scope.launch {
+                val key = recommendation?.key ?: return@launch
+                val bitmap = withContext(Dispatchers.IO) {
                     try {
-                        TvRecommendation rec = getRecommendation(position);
-                        if (rec != null) {
-                            holder.init(rec);
-                        }
-                        return;
-                    } finally {
-                        AppTrace.endSection();
+                        mBoundService?.getImageForRecommendation(key)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Exception while fetching card image", e)
+                        null
                     }
-                case 1:
-                    AppTrace.beginSection("onBindNowPlayingCard");
-                    try {
-                        //   if (holder instanceof NowPlayingViewHolder) {
-                        // ((NowPlayingViewHolder) holder).init(this.mNowPlayingData);
-                        // }
-                        AppTrace.endSection();
-                        return;
-                    } catch (Throwable th) {
-                        AppTrace.endSection();
-                    }
-                default:
-                    Log.e(TAG, "Invalid view type = " + type);
-                    return;
+                }
+                bitmap?.let {
+                    recView?.setMainImage(BitmapDrawable(mContext.resources, it))
+                }
+            }
+        }
+
+        fun getPendingIntent(): PendingIntent? = recommendation?.contentIntent
+        fun getGroup(): String? = recommendation?.group
+
+        override fun performLaunch() {
+            val intent = getPendingIntent() 
+                ?: throw LaunchException("No notification intent: $recommendation")
+            
+            try {
+                Util.startActivity(mContext, intent)
+                onLaunchSucceeded()
+                onNotificationClick(intent)
+            } catch (t: Throwable) {
+                throw LaunchException("Could not launch notification intent", t)
+            }
+        }
+
+        private fun onNotificationClick(intent: PendingIntent) {
+            this@NotificationsAdapter.onNotificationClick(intent, getGroup())
+            if (recommendation?.isAutoDismiss == true) {
+                dismissNotification(recommendation!!)
             }
         }
     }
 
-    public void onViewAttachedToWindow(NotifViewHolder holder) {
-        super.onViewAttachedToWindow(holder);
-        Message msg = new Message();
-        msg.what = 11;
-        msg.obj = holder;
-        this.mImpressionHandler.sendMessageDelayed(msg, this.mImpressionDelay);
-        this.mCardUpdateController.onViewAttachedToWindow(holder);
-    }
+    private class CardUpdateController {
+        private var isConnected = false
+        private val waitingQueue = ConcurrentLinkedQueue<NotifViewHolder>()
 
-    public void onViewDetachedFromWindow(NotifViewHolder holder) {
-        super.onViewDetachedFromWindow(holder);
-        this.mImpressionHandler.removeMessages(11, holder);
-        this.mCardUpdateController.onViewDetachedFromWindow(holder);
-        holder.itemView.clearAnimation();
-    }
+        @Synchronized
+        fun onDisconnected() { isConnected = false }
 
-    protected void onNotificationClick(PendingIntent intent, String group) {
-        super.onActionRecommendationClick(intent, group);
-    }
+        @Synchronized
+        fun onServiceStatusChanged(isReady: Boolean) {
+            isConnected = isReady
+            if (isReady) {
+                while (waitingQueue.isNotEmpty()) {
+                    val holder = waitingQueue.poll() ?: continue
+                    if (holder.queuedState == QUEUE_STATE_WAITING) {
+                        holder.executeImageTask()
+                        holder.queuedState = QUEUE_STATE_NONE
+                    } else {
+                        holder.queuedState = QUEUE_STATE_PENDING
+                    }
+                }
+            }
+        }
 
-    private void updateNowPlayingCard(boolean refreshExisting) {
-        //  if (!this.mHasNowPlayingCard) {
-        // this.mHasNowPlayingCard = true;
-        // notifyNonNotifItemInserted(0);
-        if (refreshExisting) {
-            notifyNonNotifItemChanged(0);
-        } else {
-            notifyNonNotifItemRemoved(0);
-            notifyNonNotifItemInserted(0);
+        @Synchronized
+        fun queueImageFetchIfDisconnected(holder: NotifViewHolder): Boolean {
+            if (isConnected) return false
+            if (holder.queuedState == QUEUE_STATE_NONE) {
+                waitingQueue.add(holder)
+                holder.queuedState = QUEUE_STATE_WAITING
+            }
+            return true
+        }
+
+        @Synchronized
+        fun onViewAttachedToWindow(holder: NotifViewHolder) {
+            if (isConnected && holder.queuedState == QUEUE_STATE_PENDING) {
+                holder.executeImageTask()
+                holder.queuedState = QUEUE_STATE_NONE
+            } else if (!isConnected && holder.queuedState == QUEUE_STATE_DETACHED) {
+                holder.queuedState = QUEUE_STATE_WAITING
+            }
+        }
+
+        @Synchronized
+        fun onViewDetachedFromWindow(holder: NotifViewHolder) {
+            if (!isConnected && holder.queuedState == QUEUE_STATE_WAITING) {
+                holder.queuedState = QUEUE_STATE_DETACHED
+            }
         }
     }
 
-
-    private void remoteControllerClientChanged(boolean clearing) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "remoteControllerClientChanged. Clearing= " + clearing);
+    private class ImpressionHandler(adapter: NotificationsAdapter) : Handler(Looper.getMainLooper()) {
+        private val adapterRef = WeakReference(adapter)
+        
+        override fun handleMessage(msg: Message) {
+            val adapter = adapterRef.get() ?: return
+            if (msg.what == MSG_IMPRESSION && !adapter.isIdle) {
+                val holder = msg.obj as? NotifViewHolder ?: return
+                holder.getPendingIntent()?.let { intent ->
+                    adapter.onActionRecommendationImpression(intent, holder.getGroup())
+                }
+            }
         }
-        this.mRecommendationsHandler.removeMessages(10);
-        this.mRecommendationsHandler.removeMessages(9);
-        //    if (this.mHasNowPlayingCard && clearing) {
-        //        this.mHasNowPlayingCard = false;
-        //        notifyNonNotifItemRemoved(0);
-        //    }
     }
 
-    /*private void remoteControllerMediaDataUpdated(NowPlayingCardData mediaData) {
-        Preconditions.checkNotNull(mediaData);
-        if (Log.isLoggable(TAG, 3)) {
-            Log.d(TAG, "remoteControllerMediaDataUpdated. mediaData= " + mediaData);
+    private class RecommendationsHandler(adapter: NotificationsAdapter) : Handler(Looper.getMainLooper()) {
+        private val adapterRef = WeakReference(adapter)
+        
+        override fun handleMessage(msg: Message) {
+            // Handle recommendations messages if needed
         }
-        int refresh = 0;
-        // if (this.mNowPlayingData != null && TextUtils.equals(this.mNowPlayingData.playerPackage, mediaData.playerPackage)) {
-        //   refresh = 1;
-        //  }
-        //  this.mNowPlayingData = mediaData;
-        this.mRecommendationsHandler.removeMessages(9);
-        this.mRecommendationsHandler.sendMessageDelayed(this.mRecommendationsHandler.obtainMessage(9, refresh, 0), 300);
-    }*/
-
-    private void remoteControllerClientPlaybackStateUpdate(int state, long stateChangeTimeMs, long currentPosMs) {
-        if (Log.isLoggable(TAG, Log.DEBUG)) {
-            Log.d(TAG, "remoteControllerClientPlaybackStateUpdate. state= " + state);
-        }
-        //  this.mNowPlayingState = state;
-        //  this.mNowPlayingPosMs = currentPosMs;
-        //  this.mNowPlayingPosUpdateMs = stateChangeTimeMs;
-        //if (this.mHasNowPlayingCard) {
-        //    notifyNonNotifItemChanged(0);
-        //}
     }
 
-    public void onIdleStateChange(boolean isIdle) {
-        this.mIsIdle = isIdle;
-        super.onIdleStateChange(isIdle);
-    }
+    companion object {
+        private const val TAG = "NotificationsAdapter"
+        private const val VIEW_TYPE_RECOMMENDATION = 0
+        private const val VIEW_TYPE_CAPTIVE_PORTAL = 2
+        private const val MSG_IMPRESSION = 11
 
-    public void onVisibilityChange(boolean isVisible) {
-        this.mIsIdle = !isVisible;
-        super.onVisibilityChange(isVisible);
+        private const val QUEUE_STATE_NONE = 0
+        private const val QUEUE_STATE_WAITING = 1
+        private const val QUEUE_STATE_DETACHED = 2
+        private const val QUEUE_STATE_PENDING = 3
     }
 }

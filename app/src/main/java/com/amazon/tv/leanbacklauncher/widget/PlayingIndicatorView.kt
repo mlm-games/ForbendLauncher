@@ -1,105 +1,106 @@
-package com.amazon.tv.leanbacklauncher.widget;
+package com.amazon.tv.leanbacklauncher.widget
 
-import android.animation.ValueAnimator;
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Canvas;
-import android.graphics.ColorFilter;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.util.AttributeSet;
-import android.view.View;
-import android.view.animation.LinearInterpolator;
+import android.animation.ValueAnimator
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.ColorFilter
+import android.graphics.Paint
+import android.graphics.Rect
+import android.util.AttributeSet
+import android.view.View
+import android.view.animation.LinearInterpolator
+import com.amazon.tv.leanbacklauncher.R
 
-import com.amazon.tv.leanbacklauncher.R;
+class PlayingIndicatorView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null
+) : View(context, attrs) {
 
-public class PlayingIndicatorView extends View {
-    private static final int[][] LEVELS = new int[][]{new int[]{5, 3, 5, 7, 9, 10, 11, 12, 11, 12, 10, 8, 7, 4, 2, 4, 6, 7, 9, 11, 9, 7, 5, 3, 5, 8, 5, 3, 4}, new int[]{12, 11, 10, 11, 12, 11, 9, 7, 9, 11, 12, 10, 8, 10, 12, 11, 9, 5, 3, 5, 8, 10, 12, 10, 9, 8}, new int[]{8, 9, 10, 12, 11, 9, 7, 5, 7, 8, 9, 12, 11, 12, 9, 7, 9, 11, 12, 10, 8, 9, 7, 5, 3}};
-    private final ValueAnimator mAnimator;
-    private final int mBarSeparationPx;
-    private final int mBarWidthPx;
-    private final Rect mDrawRect = new Rect();
-    private final Paint mPaint;
-    private boolean mPlaying;
-    private float mProgress;
+    private val barWidthPx = context.resources.getDimensionPixelSize(R.dimen.leanback_card_now_playing_bar_width)
+    private val barSeparationPx = context.resources.getDimensionPixelSize(R.dimen.leanback_card_now_playing_bar_margin)
+    private val drawRect = Rect()
+    private val paint = Paint().apply { color = -1 }
+    
+    private var progress = 0f
+    var isPlaying = false
 
-    public PlayingIndicatorView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        Resources res = context.getResources();
-        this.mBarWidthPx = res.getDimensionPixelSize(R.dimen.leanback_card_now_playing_bar_width);
-        this.mBarSeparationPx = res.getDimensionPixelSize(R.dimen.leanback_card_now_playing_bar_margin);
-        this.mAnimator = new ValueAnimator();
-        this.mAnimator.setInterpolator(new LinearInterpolator());
-        this.mAnimator.setRepeatCount(-1);
-        this.mAnimator.setDuration(100000000);
-        this.mAnimator.setFloatValues(0.0f, (float) (this.mAnimator.getDuration() / 80));
-        this.mAnimator.addUpdateListener(animation -> {
-            PlayingIndicatorView.this.mProgress = (Float) animation.getAnimatedValue();
-            PlayingIndicatorView.this.invalidate();
-        });
-        this.mPaint = new Paint();
-        this.mPaint.setColor(-1);
-        setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        setImportantForAccessibility(2);
-    }
-
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = (this.mBarWidthPx * 3) + (this.mBarSeparationPx * 2);
-        setMeasuredDimension(width, width);
-    }
-
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        startAnimationIfVisible();
-    }
-
-    protected void onDetachedFromWindow() {
-        super.onDetachedFromWindow();
-        stopAnimation();
-    }
-
-    public void stopAnimation() {
-        this.mAnimator.cancel();
-        postInvalidate();
-    }
-
-    public void setColorFilter(ColorFilter colorFilter) {
-        this.mPaint.setColorFilter(colorFilter);
-    }
-
-    public void startAnimationIfVisible() {
-        if (getVisibility() == View.VISIBLE) {
-            this.mAnimator.start();
-            postInvalidate();
+    private val animator = ValueAnimator().apply {
+        interpolator = LinearInterpolator()
+        repeatCount = ValueAnimator.INFINITE
+        duration = 100_000_000L
+        setFloatValues(0f, duration / 80f)
+        addUpdateListener {
+            progress = it.animatedValue as Float
+            invalidate()
         }
     }
 
-    public void setPlaying(boolean playing) {
-        this.mPlaying = playing;
+    init {
+        setLayerType(LAYER_TYPE_SOFTWARE, null)
+        importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
     }
 
-    public boolean getPlaying() {
-        return this.mPlaying;
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val size = barWidthPx * 3 + barSeparationPx * 2
+        setMeasuredDimension(size, size)
     }
 
-    protected void onDraw(Canvas canvas) {
-        drawRectangles(canvas);
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        startAnimationIfVisible()
     }
 
-    private void drawRectangles(Canvas canvas) {
-        for (int barIndex = 0; barIndex < 3; barIndex++) {
-            this.mDrawRect.left = (this.mBarWidthPx + this.mBarSeparationPx) * barIndex;
-            this.mDrawRect.right = this.mDrawRect.left + this.mBarWidthPx;
-            this.mDrawRect.bottom = getHeight();
-            this.mDrawRect.top = (int) ((((float) getHeight()) * (15.0f - (this.mPlaying ? linearlyInterpolateWithWrapping(this.mProgress, LEVELS[barIndex]) : 0.5f))) / 15.0f);
-            canvas.drawRect(this.mDrawRect, this.mPaint);
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        stopAnimation()
+    }
+
+    fun stopAnimation() {
+        animator.cancel()
+        postInvalidate()
+    }
+
+    fun setColorFilter(colorFilter: ColorFilter?) {
+        paint.colorFilter = colorFilter
+    }
+
+    fun startAnimationIfVisible() {
+        if (visibility == VISIBLE) {
+            animator.start()
+            postInvalidate()
         }
     }
 
-    private static float linearlyInterpolateWithWrapping(float position, int[] array) {
-        int positionRoundedDown = (int) position;
-        int beforeIndex = positionRoundedDown % array.length;
-        float weight = position - ((float) positionRoundedDown);
-        return (((float) array[beforeIndex]) * (1.0f - weight)) + (((float) array[(beforeIndex + 1) % array.length]) * weight);
+    override fun onDraw(canvas: Canvas) {
+        repeat(3) { barIndex ->
+            drawRect.left = (barWidthPx + barSeparationPx) * barIndex
+            drawRect.right = drawRect.left + barWidthPx
+            drawRect.bottom = height
+            
+            val level = if (isPlaying) {
+                linearlyInterpolateWithWrapping(progress, LEVELS[barIndex])
+            } else {
+                0.5f
+            }
+            drawRect.top = ((height * (15f - level)) / 15f).toInt()
+            
+            canvas.drawRect(drawRect, paint)
+        }
+    }
+
+    companion object {
+        private val LEVELS = arrayOf(
+            intArrayOf(5, 3, 5, 7, 9, 10, 11, 12, 11, 12, 10, 8, 7, 4, 2, 4, 6, 7, 9, 11, 9, 7, 5, 3, 5, 8, 5, 3, 4),
+            intArrayOf(12, 11, 10, 11, 12, 11, 9, 7, 9, 11, 12, 10, 8, 10, 12, 11, 9, 5, 3, 5, 8, 10, 12, 10, 9, 8),
+            intArrayOf(8, 9, 10, 12, 11, 9, 7, 5, 7, 8, 9, 12, 11, 12, 9, 7, 9, 11, 12, 10, 8, 9, 7, 5, 3)
+        )
+
+        private fun linearlyInterpolateWithWrapping(position: Float, array: IntArray): Float {
+            val positionRounded = position.toInt()
+            val beforeIndex = positionRounded % array.size
+            val weight = position - positionRounded
+            val afterIndex = (beforeIndex + 1) % array.size
+            return array[beforeIndex] * (1f - weight) + array[afterIndex] * weight
+        }
     }
 }

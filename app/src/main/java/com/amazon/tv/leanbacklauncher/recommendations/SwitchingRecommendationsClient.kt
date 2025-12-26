@@ -7,7 +7,7 @@ import com.amazon.tv.tvrecommendations.RecommendationsClient
 
 abstract class SwitchingRecommendationsClient(private val mContext: Context?) :
     RecommendationsClient(
-        mContext
+        mContext!!
     ) {
     private val mDelegate: Delegate? = null
 

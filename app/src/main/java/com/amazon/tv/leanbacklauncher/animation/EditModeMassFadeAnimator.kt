@@ -1,166 +1,116 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.view.View;
-import android.view.ViewGroup;
+import android.view.View
+import android.view.ViewGroup
+import com.amazon.tv.leanbacklauncher.ActiveFrame
+import com.amazon.tv.leanbacklauncher.EditableAppsRowView
+import com.amazon.tv.leanbacklauncher.HomeScreenRow
+import com.amazon.tv.leanbacklauncher.MainActivity
+import com.amazon.tv.leanbacklauncher.R
 
-import com.amazon.tv.leanbacklauncher.ActiveFrame;
-import com.amazon.tv.leanbacklauncher.EditableAppsRowView;
-import com.amazon.tv.leanbacklauncher.HomeScreenRow;
-import com.amazon.tv.leanbacklauncher.MainActivity;
-import com.amazon.tv.leanbacklauncher.R;
-import com.amazon.tv.leanbacklauncher.util.Preconditions;
+class EditModeMassFadeAnimator(
+    activity: MainActivity,
+    private val editMode: EditMode
+) : PropagatingAnimator<EditModeMassFadeAnimator.ViewHolder>(), Joinable {
 
-import java.util.Iterator;
+    enum class EditMode { ENTER, EXIT }
+    enum class Direction { FADE_IN, FADE_OUT }
 
-import static com.amazon.tv.leanbacklauncher.animation.EditModeMassFadeAnimator.ViewHolder.Direction;
-
-public final class EditModeMassFadeAnimator extends PropagatingAnimator<EditModeMassFadeAnimator.ViewHolder> implements Joinable {
-    private final EditMode mEditMode;
-
-    public enum EditMode {
-        ENTER,
-        EXIT
+    class ViewHolder(
+        view: View,
+        val direction: Direction,
+        val onOffOnly: Boolean = false
+    ) : PropagatingAnimator.ViewHolder(view) {
+        val startAlpha = if (direction == Direction.FADE_IN) 0f else 1f
+        val endAlpha = if (direction == Direction.FADE_IN) 1f else 0f
     }
 
-    static final class ViewHolder extends PropagatingAnimator.ViewHolder {
-        public Direction mDirection;
-        private final float mEndAlpha;
-        public boolean mOnOffOnly;
-        private final float mStartAlpha;
-
-        public enum Direction {
-            FADE_IN,
-            FADE_OUT
-        }
-
-        ViewHolder(View view, Direction direction) {
-            super(view);
-            this.mOnOffOnly = false;
-            this.mDirection = direction;
-            switch (direction) {
-                case FADE_IN:
-                    this.mStartAlpha = 0.0f;
-                    this.mEndAlpha = 1.0f;
-                    return;
-                case FADE_OUT:
-                    this.mStartAlpha = 1.0f;
-                    this.mEndAlpha = 0.0f;
-                    return;
-                default:
-                    throw new IllegalStateException("Unknown direction: " + direction);
-            }
-        }
-
-        ViewHolder(View view, Direction direction, boolean onOffOnly) {
-            this(view, direction);
-            this.mOnOffOnly = onOffOnly;
-        }
+    init {
+        val res = activity.resources
+        duration = (if (editMode == EditMode.EXIT) 
+            res.getInteger(R.integer.edit_mode_exit_fade_duration) 
+        else 
+            res.getInteger(R.integer.edit_mode_entrance_fade_duration)).toLong()
+        addViews(activity)
     }
 
-    public EditModeMassFadeAnimator(MainActivity activity, EditMode editMode) {
-        super(10);
-        this.mEditMode = Preconditions.checkNotNull(editMode);
-        if (editMode == EditMode.EXIT) {
-            setDuration(activity.getResources().getInteger(R.integer.edit_mode_exit_fade_duration));
-        } else {
-            setDuration(activity.getResources().getInteger(R.integer.edit_mode_entrance_fade_duration));
-        }
-        addViews(activity);
-    }
-
-    private void addViews(MainActivity activity) {
-        Iterator it = activity.getHomeAdapter().getAllRows().iterator();
-        while (it.hasNext()) {
-            View activeFrame = ((HomeScreenRow) it.next()).getRowView();
-            if (activeFrame instanceof ActiveFrame) {
-                for (int i = 0; i < ((ActiveFrame) activeFrame).getChildCount(); i++) {
-                    View rowView = ((ActiveFrame) activeFrame).getChildAt(i);
-                    if (!(rowView instanceof EditableAppsRowView)) {
-                        addView(new ViewHolder(rowView, this.mEditMode == EditMode.ENTER ? Direction.FADE_OUT : Direction.FADE_IN));
-                    } else if (!((EditableAppsRowView) rowView).getEditMode()) {
-                        addView(new ViewHolder(rowView, this.mEditMode == EditMode.ENTER ? Direction.FADE_OUT : Direction.FADE_IN));
-                    }
+    private fun addViews(activity: MainActivity) {
+        // Add Home Screen Rows
+        activity.homeAdapter?.allRows?.forEach { row ->
+            val activeFrame = (row as? HomeScreenRow)?.rowView as? ActiveFrame ?: return@forEach
+            
+            for (i in 0 until activeFrame.childCount) {
+                val rowView = activeFrame.getChildAt(i)
+                val isEditable = rowView is EditableAppsRowView && rowView.editMode
+                
+                if (!isEditable) {
+                    addView(ViewHolder(rowView, if (editMode == EditMode.ENTER) Direction.FADE_OUT else Direction.FADE_IN))
                 }
             }
         }
-        addView(new ViewHolder(activity.getWallpaperView(), this.mEditMode == EditMode.ENTER ? Direction.FADE_OUT : Direction.FADE_IN));
-        addView(new ViewHolder(activity.getEditModeView(), this.mEditMode == EditMode.ENTER ? Direction.FADE_IN : Direction.FADE_OUT));
-        addView(new ViewHolder(activity.getEditModeWallpaper(), this.mEditMode == EditMode.ENTER ? Direction.FADE_IN : Direction.FADE_OUT, true));
+
+        // Add Wallpaper and Edit Mode Views
+        activity.wallpaperView?.let {
+            addView(ViewHolder(it, if (editMode == EditMode.ENTER) Direction.FADE_OUT else Direction.FADE_IN))
+        }
+        activity.editModeView?.let {
+            addView(ViewHolder(it, if (editMode == EditMode.ENTER) Direction.FADE_IN else Direction.FADE_OUT))
+        }
+        activity.editModeWallpaper?.let {
+            addView(ViewHolder(it, if (editMode == EditMode.ENTER) Direction.FADE_IN else Direction.FADE_OUT, true))
+        }
     }
 
-    protected void onSetupStartValues(ViewHolder holder) {
-        if (!holder.mOnOffOnly) {
-            holder.view.setAlpha(holder.mStartAlpha);
-        } else if (holder.mStartAlpha == 0.0f) {
-            holder.view.setVisibility(View.INVISIBLE);
+    override fun onSetupStartValues(holder: ViewHolder) {
+        if (holder.onOffOnly) {
+            holder.view.visibility = if (holder.startAlpha == 0f) View.INVISIBLE else View.VISIBLE
+            holder.view.alpha = if (holder.startAlpha == 0f) 0f else 1f
         } else {
-            holder.view.setAlpha(1.0f);
-            holder.view.setVisibility(View.VISIBLE);
+            holder.view.alpha = holder.startAlpha
         }
     }
 
-    protected void onUpdateView(ViewHolder holder, float fraction) {
-        float alpha = holder.mStartAlpha + ((holder.mEndAlpha - holder.mStartAlpha) * fraction);
-        if (!holder.mOnOffOnly) {
-            holder.view.setAlpha(alpha);
-        } else if (alpha == 0.0f) {
-            holder.view.setVisibility(View.INVISIBLE);
+    override fun onUpdateView(holder: ViewHolder, fraction: Float) {
+        val alpha = holder.startAlpha + (holder.endAlpha - holder.startAlpha) * fraction
+        if (holder.onOffOnly) {
+            holder.view.visibility = if (alpha == 0f) View.INVISIBLE else View.VISIBLE
+            holder.view.alpha = if (alpha == 0f) 0f else 1f
         } else {
-            holder.view.setAlpha(1.0f);
-            holder.view.setVisibility(View.VISIBLE);
+            holder.view.alpha = alpha
         }
     }
 
-    protected void onResetView(ViewHolder holder) {
-        if (holder.mOnOffOnly) {
-            float f;
-            holder.view.setVisibility(holder.mDirection == Direction.FADE_IN ? View.INVISIBLE : View.VISIBLE);
-            View view = holder.view;
-            if (holder.mDirection == Direction.FADE_IN) {
-                f = 0.0f;
-            } else {
-                f = 1.0f;
-            }
-            view.setAlpha(f);
-            return;
+    override fun onResetView(holder: ViewHolder) {
+        if (holder.onOffOnly) {
+            holder.view.visibility = if (holder.direction == Direction.FADE_IN) View.INVISIBLE else View.VISIBLE
+            holder.view.alpha = if (holder.direction == Direction.FADE_IN) 0f else 1f
+        } else {
+            holder.view.alpha = 1f
         }
-        holder.view.setAlpha(1.0f);
     }
 
-    public void include(View target) {
-        boolean editModeParticipant = false;
-        if (target instanceof ActiveFrame) {
-            int childCount = ((ActiveFrame) target).getChildCount();
-            for (int j = 0; j < childCount; j++) {
-                View activeItemsRow = ((ViewGroup) target).getChildAt(j);
-                if (activeItemsRow instanceof EditableAppsRowView) {
-                    editModeParticipant = ((EditableAppsRowView) activeItemsRow).getEditMode();
+    override fun include(target: View) {
+        var editModeParticipant = false
+        if (target is ActiveFrame) {
+            for (i in 0 until target.childCount) {
+                val child = target.getChildAt(i)
+                if (child is EditableAppsRowView && child.editMode) {
+                    editModeParticipant = true
+                    break
                 }
             }
         }
-        Direction direction = Direction.FADE_OUT;
-        if ((editModeParticipant && this.mEditMode == EditMode.ENTER) || (!editModeParticipant && this.mEditMode == EditMode.EXIT)) {
-            direction = Direction.FADE_IN;
+
+        val direction = if ((editModeParticipant && editMode == EditMode.ENTER) || 
+                           (!editModeParticipant && editMode == EditMode.EXIT)) {
+            Direction.FADE_IN
+        } else {
+            Direction.FADE_OUT
         }
-        addView(new ViewHolder(target, direction));
+        addView(ViewHolder(target, direction))
     }
 
-    public void exclude(View target) {
-        int n = size();
-        for (int i = 0; i < n; i++) {
-            if (getView(i).view == target) {
-                removeView(i);
-                return;
-            }
-        }
-    }
-
-    public String toString() {
-        StringBuilder buf = new StringBuilder().append("EditModeMassFadeAnimator@").append(Integer.toHexString(hashCode())).append(':').append(this.mEditMode == EditMode.ENTER ? "ENTER" : "EXIT").append('{');
-        int n = size();
-        for (int i = 0; i < n; i++) {
-            buf.append("\n    ").append(getView(i).toString().replaceAll("\n", "\n    "));
-        }
-        return buf.append("\n}").toString();
+    override fun exclude(target: View) {
+        (0 until size()).find { getView(it).view == target }?.let { removeView(it) }
     }
 }

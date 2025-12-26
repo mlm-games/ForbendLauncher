@@ -69,7 +69,7 @@ open class ActiveItemsRowView @JvmOverloads constructor(
         isChildrenDrawingOrderEnabled = true
         setAnimateChildLayout(true)
         mDimState = DimState.INACTIVE
-        mCardElevationSupported = LauncherConfiguration.getInstance().isCardElevationEnabled
+        mCardElevationSupported = LauncherConfiguration.instance?.isCardElevationEnabled ?: false
     }
 
     override fun hasOverlappingRendering(): Boolean {

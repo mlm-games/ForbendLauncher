@@ -1,37 +1,32 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-import android.content.Context;
+import android.content.Context
+import androidx.preference.PreferenceManager
+import java.util.*
 
-import androidx.preference.PreferenceManager;
-
-import java.util.Calendar;
-import java.util.Date;
-
-class DateUtil {
-    public static int getDay(Date date) {
-        if (date == null) {
-            return -1;
+object DateUtil {
+    private const val PREF_KEY = "recommendations_oob_ranking_marker"
+    
+    fun getDay(date: Date?): Int {
+        date ?: return -1
+        return Calendar.getInstance().apply { time = date }.let {
+            it[Calendar.YEAR] * 1000 + it[Calendar.DAY_OF_YEAR]
         }
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        return (cal.get(1) * 1000) + cal.get(6);
     }
 
-    public static Date getDate(int day) {
-        if (day == -1) {
-            return null;
-        }
-        Calendar cal = Calendar.getInstance();
-        cal.set(1, day / 1000);
-        cal.set(6, day % 1000);
-        return cal.getTime();
+    fun getDate(day: Int): Date? {
+        if (day == -1) return null
+        return Calendar.getInstance().apply {
+            set(Calendar.YEAR, day / 1000)
+            set(Calendar.DAY_OF_YEAR, day % 1000)
+        }.time
     }
 
-    public static boolean initialRankingApplied(Context ctx) {
-        return PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean("recommendations_oob_ranking_marker", false);
-    }
+    fun initialRankingApplied(ctx: Context) = 
+        PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(PREF_KEY, false)
 
-    public static void setInitialRankingAppliedFlag(Context ctx, boolean applied) {
-        PreferenceManager.getDefaultSharedPreferences(ctx).edit().putBoolean("recommendations_oob_ranking_marker", applied).apply();
+    fun setInitialRankingAppliedFlag(ctx: Context, applied: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(ctx).edit()
+            .putBoolean(PREF_KEY, applied).apply()
     }
 }

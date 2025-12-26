@@ -15,16 +15,16 @@ import com.amazon.tv.tvrecommendations.TvRecommendation
 import java.io.PrintWriter
 import java.util.*
 
-abstract class NotificationsViewAdapter<VH : RecyclerView.ViewHolder?> internal constructor(
+abstract class NotificationsViewAdapter<VH : RecyclerView.ViewHolder> internal constructor(
     context: Context?,
     minUpdateTime: Long,
     maxUpdateTime: Long
-) : RowViewAdapter<VH>(context), IdleListener {
+) : RowViewAdapter<VH>(context!!), IdleListener {
     private var mHomeScreenMessaging: HomeScreenMessaging? = null
     private val mMasterList = ArrayList<TvRecommendation?>()
     private var mPrioritizeRowUpdateState: PrioritizeRowUpdateState<VH>? = null
     private val mRecommendationToBeRemoved: MutableSet<TvRecommendation?> =
-        ArraySet<TvRecommendation?>()
+        ArraySet()
     private val mSyncedList = ArrayList<TvRecommendation?>()
     var uiState = 0
         private set
@@ -40,7 +40,7 @@ abstract class NotificationsViewAdapter<VH : RecyclerView.ViewHolder?> internal 
         const val UI_STATE_VISIBLE = 1
     }
 
-    internal class PrioritizeRowUpdateState<VH : RecyclerView.ViewHolder?>(
+    internal class PrioritizeRowUpdateState<VH : RecyclerView.ViewHolder>(
         private val mAdapter: NotificationsViewAdapter<VH>,
         private val mMinUpdateTime: Long,
         private val mMaxUpdateTime: Long

@@ -85,16 +85,16 @@ class NotificationCardView @JvmOverloads constructor(
             ResourcesCompat.getColor(resources, R.color.notif_background_color, null)
         mInfoBackground = ColorDrawable(launchAnimationColor)
         mInfoArea?.background = mInfoBackground
-        mDimmer.addDimTarget(mImageView)
-        mDimmer.addDimTarget(mTitleView)
-        mDimmer.addDimTarget(mContentView)
-        mDimmer.addDimTarget(mSourceNameView)
+        mDimmer.addDimTarget(mImageView!!)
+        mDimmer.addDimTarget(mTitleView!!)
+        mDimmer.addDimTarget(mContentView!!)
+        mDimmer.addDimTarget(mSourceNameView!!)
         mDimmer.addDimTarget(cardBkg)
-        mDimmer.addDesatDimTarget(mBadgeImage)
-        mDimmer.addDesatDimTarget(mBadgeImageSelected)
-        mDimmer.addDimTarget(mInfoBackground)
-        mDimmer.addDimTarget(mProgBar?.progressDrawable)
-        mDimmer.setDimLevelImmediate()
+        mDimmer.addDesatDimTarget(mBadgeImage!!)
+        mDimmer.addDesatDimTarget(mBadgeImageSelected!!)
+        mDimmer.addDimTarget(mInfoBackground!!)
+        mDimmer.addDimTarget(mProgBar?.progressDrawable!!)
+        mDimmer.setDimLevelImmediate(DimState.INACTIVE)
         clipToOutline = true
     }
 
@@ -193,7 +193,7 @@ class NotificationCardView @JvmOverloads constructor(
 
     private fun setNotificationImage(rec: TvRecommendation) {
         try {
-            val res = context.packageManager.getResourcesForApplication(rec.packageName)
+            val res = context.packageManager.getResourcesForApplication(rec.packageName!!)
             var image: Drawable? = null
             var width = -1
             var height = -1
@@ -260,7 +260,7 @@ class NotificationCardView @JvmOverloads constructor(
             mMetaAnim = null
         }
         clearAnimation()
-        mDimmer.setDimLevelImmediate()
+        mDimmer.setDimLevelImmediate(DimState.INACTIVE)
         mFocusAnimator.setFocusImmediate(focus)
         setMetaDataExpandedImmediate(focus)
         setAnimationsEnabled(true)

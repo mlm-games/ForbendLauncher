@@ -1,211 +1,177 @@
-package com.amazon.tv.leanbacklauncher.notifications;
+package com.amazon.tv.leanbacklauncher.notifications
 
-import android.os.Handler;
-import android.os.Message;
-import android.os.SystemClock;
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import java.lang.ref.WeakReference
 
-import java.lang.ref.WeakReference;
+class HomeScreenMessaging(private val homeScreenView: HomeScreenView) {
 
-public class HomeScreenMessaging {
-    static final int VIEW_DISABLED = 2;
-    static final int VIEW_NO_CONNECTION = 4;
-    static final int VIEW_VISIBLE = 0;
-    private boolean mConnected = true;
-    private final HomeScreenView mHomeScreenView;
-    private ChangeListener mListener;
-    private int mNextViewState = -1;
-    private boolean mRecommendationsVisible = false;
-    private int mTimeoutViewState = 3;
-    private final TimerHandler mTimer = new TimerHandler(this);
-    private int mViewState = -1;
-    private long mWhenNextViewVisible = 0;
-
-    public interface ChangeListener {
-        void onStateChanged(int i);
+    fun interface ChangeListener {
+        fun onStateChanged(state: Int)
     }
 
-    private static class TimerHandler extends Handler {
-        private final WeakReference<HomeScreenMessaging> mParent;
+    var listener: ChangeListener? = null
+    
+    private var connected = true
+    private var recommendationsVisible = false
+    private var viewState = -1
+    private var nextViewState = -1
+    private var timeoutViewState = VIEW_STATE_TIMEOUT
+    private var whenNextViewVisible = 0L
+    
+    private val timer = TimerHandler(this)
 
-        TimerHandler(HomeScreenMessaging parent) {
-            this.mParent = new WeakReference(parent);
-        }
-
-        public void handleMessage(Message msg) {
-            HomeScreenMessaging homeScreenMessaging = this.mParent.get();
-            if (homeScreenMessaging != null) {
-                switch (msg.what) {
-                    case 0:
-                        homeScreenMessaging.minimumViewVisibleTimerTriggered();
-                        return;
-                    case 1:
-                        homeScreenMessaging.preparingTimeoutTriggered();
-                        return;
-                    default:
-                }
+    private class TimerHandler(messaging: HomeScreenMessaging) : Handler(Looper.getMainLooper()) {
+        private val parent = WeakReference(messaging)
+        
+        override fun handleMessage(msg: android.os.Message) {
+            val messaging = parent.get() ?: return
+            when (msg.what) {
+                MSG_MIN_VISIBLE_TIMER -> messaging.minimumViewVisibleTimerTriggered()
+                MSG_PREPARING_TIMEOUT -> messaging.preparingTimeoutTriggered()
             }
         }
     }
 
-    public HomeScreenMessaging(HomeScreenView homeScreenView) {
-        this.mHomeScreenView = homeScreenView;
+    private fun applyViewState(viewState: Int) {
+        homeScreenView.flipToView(when (viewState) {
+            VIEW_STATE_VISIBLE -> 0
+            VIEW_STATE_PREPARING -> 1
+            VIEW_STATE_DISABLED -> 2
+            VIEW_STATE_TIMEOUT -> 3
+            VIEW_STATE_NO_CONNECTION -> 4
+            else -> -1
+        })
+        
+        this.viewState = viewState
+        
+        val newState = when (viewState) {
+            VIEW_STATE_VISIBLE -> STATE_VISIBLE
+            VIEW_STATE_PREPARING -> STATE_DISABLED
+            VIEW_STATE_DISABLED, VIEW_STATE_TIMEOUT, VIEW_STATE_NO_CONNECTION -> STATE_ERROR
+            else -> -1
+        }
+        listener?.onStateChanged(newState)
     }
 
-    public void setListener(ChangeListener listener) {
-        this.mListener = listener;
-    }
-
-    private void applyViewState(int viewState) {
-        int showView;
-        int newState;
-        switch (viewState) {
-            case 0:
-                showView = 0;
-                break;
-            case 1:
-                showView = 1;
-                break;
-            case 2:
-                showView = 2;
-                break;
-            case 3:
-                showView = 3;
-                break;
-            case 4:
-                showView = 4;
-                break;
-            default:
-                showView = -1;
-                break;
-        }
-        this.mHomeScreenView.flipToView(showView);
-        this.mViewState = viewState;
-        switch (viewState) {
-            case 0:
-                newState = 0;
-                break;
-            case 1:
-                newState = 2;
-                break;
-            case 2:
-            case 3:
-            case 4:
-                newState = 1;
-                break;
-            default:
-                newState = -1;
-                break;
-        }
-        if (this.mListener != null) {
-            this.mListener.onStateChanged(newState);
+    private fun minimumViewVisibleTimerTriggered() {
+        if (nextViewState != -1) {
+            applyViewState(nextViewState)
+            nextViewState = -1
+            whenNextViewVisible = SystemClock.elapsedRealtime() + MIN_VIEW_VISIBLE_MS
         }
     }
 
-    private void minimumViewVisibleTimerTriggered() {
-        if (this.mNextViewState != -1) {
-            applyViewState(this.mNextViewState);
-            this.mNextViewState = -1;
-            this.mWhenNextViewVisible = SystemClock.elapsedRealtime() + 1000;
+    private fun preparingTimeoutTriggered() {
+        applyViewState(timeoutViewState)
+        nextViewState = -1
+        whenNextViewVisible = SystemClock.elapsedRealtime() + MIN_VIEW_VISIBLE_MS
+    }
+
+    private fun setViewState(newViewState: Int) {
+        stopPreparingTimeout()
+        val now = SystemClock.elapsedRealtime()
+        
+        val resolvedViewState = if ((newViewState == VIEW_STATE_DISABLED || 
+            newViewState == VIEW_STATE_TIMEOUT) && !connected) {
+            VIEW_STATE_NO_CONNECTION
+        } else newViewState
+
+        if (now >= whenNextViewVisible || (viewState == VIEW_STATE_VISIBLE && resolvedViewState != VIEW_STATE_VISIBLE)) {
+            nextViewState = -1
+            timer.removeMessages(MSG_MIN_VISIBLE_TIMER)
+            applyViewState(resolvedViewState)
+            whenNextViewVisible = now + MIN_VIEW_VISIBLE_MS
+        } else {
+            if (nextViewState == -1) {
+                timer.sendEmptyMessageDelayed(MSG_MIN_VISIBLE_TIMER, MIN_VIEW_VISIBLE_MS)
+            }
+            nextViewState = resolvedViewState
         }
     }
 
-    private void preparingTimeoutTriggered() {
-        applyViewState(this.mTimeoutViewState);
-        this.mNextViewState = -1;
-        this.mWhenNextViewVisible = SystemClock.elapsedRealtime() + 1000;
+    private fun startPreparingTimeout(timeoutViewState: Int) {
+        stopPreparingTimeout()
+        this.timeoutViewState = timeoutViewState
+        timer.sendEmptyMessageDelayed(MSG_PREPARING_TIMEOUT, PREPARING_TIMEOUT_MS)
     }
 
-    void setViewState(int newViewState) {
-        stopPreparingTimeout();
-        long now = SystemClock.elapsedRealtime();
-        int resolvedViewState = newViewState;
-        if ((newViewState == 2 || newViewState == 3) && !this.mConnected) {
-            resolvedViewState = 4;
-        }
-        if (now >= this.mWhenNextViewVisible || (this.mViewState == 0 && resolvedViewState != 0)) {
-            this.mNextViewState = -1;
-            this.mTimer.removeMessages(0);
-            applyViewState(resolvedViewState);
-            this.mWhenNextViewVisible = now + 1000;
-            return;
-        }
-        if (this.mNextViewState == -1) {
-            this.mTimer.sendEmptyMessageDelayed(0, 1000);
-        }
-        this.mNextViewState = resolvedViewState;
+    private fun stopPreparingTimeout() {
+        timer.removeMessages(MSG_PREPARING_TIMEOUT)
     }
 
-    void setViewStateForTesting(int viewState) {
-        this.mViewState = viewState;
-    }
-
-    int getViewState() {
-        return this.mViewState;
-    }
-
-    private void startPreparingTimeout(int timeoutViewState) {
-        stopPreparingTimeout();
-        this.mTimeoutViewState = timeoutViewState;
-        this.mTimer.sendEmptyMessageDelayed(1, 30000);
-    }
-
-    private void stopPreparingTimeout() {
-        this.mTimer.removeMessages(1);
-    }
-
-    public void recommendationsUpdated(boolean hasRecommendations) {
-        if (this.mRecommendationsVisible != hasRecommendations) {
-            this.mRecommendationsVisible = hasRecommendations;
+    fun recommendationsUpdated(hasRecommendations: Boolean) {
+        if (recommendationsVisible != hasRecommendations) {
+            recommendationsVisible = hasRecommendations
             if (hasRecommendations) {
-                setViewState(0);
-            } else if (this.mViewState != 1) {
-                setViewState(1);
-                startPreparingTimeout(3);
+                setViewState(VIEW_STATE_VISIBLE)
+            } else if (viewState != VIEW_STATE_PREPARING) {
+                setViewState(VIEW_STATE_PREPARING)
+                startPreparingTimeout(VIEW_STATE_TIMEOUT)
             }
         }
     }
 
-    public void onClearRecommendations(int reason) {
-        switch (reason) {
-            case 2:
-                this.mRecommendationsVisible = false;
-                setViewState(2);
-                return;
-            case 4:
-                if (this.mViewState != 1) {
-                    resetToPreparing(2);
-                    return;
+    fun onClearRecommendations(reason: Int) {
+        when (reason) {
+            CLEAR_DISABLED -> {
+                recommendationsVisible = false
+                setViewState(VIEW_STATE_DISABLED)
+            }
+            CLEAR_PENDING_DISABLED -> {
+                if (viewState != VIEW_STATE_PREPARING) {
+                    resetToPreparing(VIEW_STATE_DISABLED)
                 }
-                return;
-            default:
-                if (this.mViewState != 1) {
-                    resetToPreparing(3);
-                    return;
+            }
+            else -> {
+                if (viewState != VIEW_STATE_PREPARING) {
+                    resetToPreparing(VIEW_STATE_TIMEOUT)
                 }
-        }
-    }
-
-    private void resetToPreparing(int timeoutViewState) {
-        this.mRecommendationsVisible = false;
-        setViewState(1);
-        startPreparingTimeout(timeoutViewState);
-    }
-
-    public void resetToPreparing() {
-        resetToPreparing(3);
-    }
-
-    public void onConnectivityChange(boolean connected) {
-        if (connected != this.mConnected) {
-            this.mConnected = connected;
-            if (this.mConnected) {
-                if (this.mViewState == 4) {
-                    setViewState(1);
-                    startPreparingTimeout(this.mTimeoutViewState);
-                }
-            } else if (this.mViewState == 1 || this.mViewState == 2 || this.mViewState == 3) {
-                setViewState(4);
             }
         }
+    }
+
+    private fun resetToPreparing(timeoutViewState: Int) {
+        recommendationsVisible = false
+        setViewState(VIEW_STATE_PREPARING)
+        startPreparingTimeout(timeoutViewState)
+    }
+
+    fun resetToPreparing() = resetToPreparing(VIEW_STATE_TIMEOUT)
+
+    fun onConnectivityChange(connected: Boolean) {
+        if (connected != this.connected) {
+            this.connected = connected
+            if (connected) {
+                if (viewState == VIEW_STATE_NO_CONNECTION) {
+                    setViewState(VIEW_STATE_PREPARING)
+                    startPreparingTimeout(timeoutViewState)
+                }
+            } else if (viewState in listOf(VIEW_STATE_PREPARING, VIEW_STATE_DISABLED, VIEW_STATE_TIMEOUT)) {
+                setViewState(VIEW_STATE_NO_CONNECTION)
+            }
+        }
+    }
+
+    companion object {
+        const val STATE_VISIBLE = 0
+        const val STATE_ERROR = 1
+        const val STATE_DISABLED = 2
+        
+        private const val VIEW_STATE_VISIBLE = 0
+        private const val VIEW_STATE_PREPARING = 1
+        private const val VIEW_STATE_DISABLED = 2
+        private const val VIEW_STATE_TIMEOUT = 3
+        private const val VIEW_STATE_NO_CONNECTION = 4
+
+        private const val CLEAR_DISABLED = 2
+        private const val CLEAR_PENDING_DISABLED = 4
+
+        private const val MSG_MIN_VISIBLE_TIMER = 0
+        private const val MSG_PREPARING_TIMEOUT = 1
+        
+        private const val MIN_VIEW_VISIBLE_MS = 1000L
+        private const val PREPARING_TIMEOUT_MS = 30000L
     }
 }

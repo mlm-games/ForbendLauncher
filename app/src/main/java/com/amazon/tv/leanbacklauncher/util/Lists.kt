@@ -1,126 +1,123 @@
-package com.amazon.tv.leanbacklauncher.util;
+package com.amazon.tv.leanbacklauncher.util
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+object Lists {
 
-import static com.amazon.tv.leanbacklauncher.util.Lists.Change.Type;
+    data class Change(
+        val type: Type,
+        val index: Int,
+        val count: Int = 1
+    ) {
+        enum class Type { INSERTION, REMOVAL }
 
-public final class Lists {
-
-    public static final class Change {
-        public final int count;
-        public final int index;
-        public final Type type;
-
-        public enum Type {
-            INSERTION,
-            REMOVAL
-        }
-
-        private Change(Type type, int index, int count) {
-            this.type = type;
-            this.index = index;
-            this.count = count;
-        }
-
-        public String toString() {
-            StringBuilder buf = new StringBuilder();
-            buf.append(this.type.name().toLowerCase()).append("@").append(this.index);
-            if (this.count > 1) {
-                buf.append("x").append(this.count);
-            }
-            return buf.toString();
+        override fun toString() = buildString {
+            append(type.name.lowercase())
+            append("@$index")
+            if (count > 1) append("x$count")
         }
     }
 
-    private static final class Cursor<T> {
-        T element;
-        int index;
+    private data class Cursor<T>(
+        var element: T? = null,
+        var index: Int = 0
+    )
 
-        private Cursor() {
-        }
-    }
+    fun <T> getChanges(left: List<T>, right: List<T>, comparator: Comparator<T>): List<Change> {
+        val changes = mutableListOf<Change>()
+        val lSize = left.size
+        val rSize = right.size
+        var offset = 0
+        
+        val l = Cursor<T>()
+        val r = Cursor<T>()
+        val lookAhead = Cursor<T>()
 
-    public static <T> List<Change> getChanges(List<T> left, List<T> right, Comparator<T> comparator) {
-        ArrayList<Change> changes = new ArrayList();
-        int lSize = left.size();
-        int rSize = right.size();
-        int offset = 0;
-        Cursor<T> l = new Cursor();
-        Cursor<T> r = new Cursor();
-        Cursor<T> lookAhead = new Cursor();
         while (l.index < lSize && r.index < rSize) {
-            l.element = left.get(l.index);
-            r.element = right.get(r.index);
-            if (l.element.equals(r.element)) {
-                l.index++;
-                r.index++;
-            } else {
-                int comparison = comparator.compare(l.element, r.element);
-                int count;
-                if (comparison < 0) {
-                    count = scanWhileLessThan(left, l, r, comparator);
-                    changes.add(new Change(Type.REMOVAL, l.index + offset, count));
-                    offset -= count;
-                    l.index += count;
-                } else if (comparison > 0) {
-                    count = scanWhileLessThan(right, r, l, comparator);
-                    changes.add(new Change(Type.INSERTION, l.index + offset, count));
-                    offset += count;
-                    r.index += count;
-                } else {
-                    lookAhead.index = r.index;
-                    count = scanForElement(right, l, comparator, lookAhead);
+            l.element = left[l.index]
+            r.element = right[r.index]
+
+            if (l.element == r.element) {
+                l.index++
+                r.index++
+                continue
+            }
+
+            val comparison = comparator.compare(l.element, r.element)
+            
+            when {
+                comparison < 0 -> {
+                    val count = scanWhileLessThan(left, l, r, comparator)
+                    changes.add(Change(Change.Type.REMOVAL, l.index + offset, count))
+                    offset -= count
+                    l.index += count
+                }
+                comparison > 0 -> {
+                    val count = scanWhileLessThan(right, r, l, comparator)
+                    changes.add(Change(Change.Type.INSERTION, l.index + offset, count))
+                    offset += count
+                    r.index += count
+                }
+                else -> {
+                    lookAhead.index = r.index
+                    var count = scanForElement(right, l, comparator, lookAhead)
+                    
                     if (lookAhead.element != null) {
-                        changes.add(new Change(Type.INSERTION, l.index + offset, count));
-                        offset += count;
-                        l.index++;
-                        r.index = lookAhead.index + 1;
+                        changes.add(Change(Change.Type.INSERTION, l.index + offset, count))
+                        offset += count
+                        l.index++
+                        r.index = lookAhead.index + 1
                     } else {
-                        lookAhead.index = l.index;
-                        count = scanForElement(left, r, comparator, lookAhead);
-                        changes.add(new Change(Type.REMOVAL, l.index + offset, count));
-                        offset -= count;
-                        l.index += count;
+                        lookAhead.index = l.index
+                        count = scanForElement(left, r, comparator, lookAhead)
+                        changes.add(Change(Change.Type.REMOVAL, l.index + offset, count))
+                        offset -= count
+                        l.index += count
                     }
                 }
             }
         }
-        if (l.index < lSize) {
-            changes.add(new Change(Type.REMOVAL, l.index + offset, lSize - l.index));
-        } else if (r.index < rSize) {
-            changes.add(new Change(Type.INSERTION, lSize + offset, rSize - r.index));
+
+        when {
+            l.index < lSize -> changes.add(Change(Change.Type.REMOVAL, l.index + offset, lSize - l.index))
+            r.index < rSize -> changes.add(Change(Change.Type.INSERTION, lSize + offset, rSize - r.index))
         }
-        return changes;
+
+        return changes
     }
 
-    private static <T> int scanWhileLessThan(List<T> list, Cursor<T> cursor, Cursor<T> reference, Comparator<T> comparator) {
-        int size = list.size();
-        int i = cursor.index;
-        do {
-            i++;
-            if (i >= size) {
-                break;
-            }
-        } while (comparator.compare(list.get(i), reference.element) < 0);
-        return i - cursor.index;
+    private fun <T> scanWhileLessThan(
+        list: List<T>,
+        cursor: Cursor<T>,
+        reference: Cursor<T>,
+        comparator: Comparator<T>
+    ): Int {
+        var i = cursor.index
+        while (++i < list.size && comparator.compare(list[i], reference.element) < 0) {
+            // Continue scanning
+        }
+        return i - cursor.index
     }
 
-    private static <T> int scanForElement(List<T> list, Cursor<T> reference, Comparator<T> comparator, Cursor<T> outLookAhead) {
-        int startIndex = outLookAhead.index;
-        int size = list.size();
-        do {
-            outLookAhead.index++;
-            if (outLookAhead.index >= size) {
-                break;
+    private fun <T> scanForElement(
+        list: List<T>,
+        reference: Cursor<T>,
+        comparator: Comparator<T>,
+        outLookAhead: Cursor<T>
+    ): Int {
+        val startIndex = outLookAhead.index
+        
+        while (++outLookAhead.index < list.size) {
+            outLookAhead.element = list[outLookAhead.index]
+            
+            if (reference.element == outLookAhead.element) {
+                return outLookAhead.index - startIndex
             }
-            outLookAhead.element = list.get(outLookAhead.index);
-            if (reference.element.equals(outLookAhead.element)) {
-                return outLookAhead.index - startIndex;
+            
+            if (comparator.compare(reference.element, outLookAhead.element) != 0) {
+                break
             }
-        } while (comparator.compare(reference.element, outLookAhead.element) == 0);
-        outLookAhead.element = null;
-        return outLookAhead.index - startIndex;
+        }
+        
+        outLookAhead.element = null
+        return outLookAhead.index - startIndex
     }
 }

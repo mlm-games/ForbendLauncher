@@ -173,14 +173,14 @@ class EditModeView @JvmOverloads constructor(
         if (uninstallMode) {
             mUninstallAnimation?.startAnimation(
                 EditModeUninstallAnimationHolder.EditModeUninstallState.ENTER,
-                curView,
-                activeItems
+                curView!!,
+                activeItems!!
             )
         } else {
             mUninstallAnimation?.startAnimation(
                 EditModeUninstallAnimationHolder.EditModeUninstallState.EXIT,
-                curView,
-                activeItems
+                curView!!,
+                activeItems!!
             )
         }
     }

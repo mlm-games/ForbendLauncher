@@ -1,267 +1,166 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.graphics.Rect;
-import android.os.Handler;
-import android.os.Message;
-import android.util.Log;
-import android.view.View;
-import android.view.ViewGroup;
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.graphics.Rect
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.View
+import android.view.ViewGroup
+import java.io.PrintWriter
 
-import com.amazon.tv.leanbacklauncher.util.Preconditions;
+class AnimatorLifecycle : Joinable, Resettable {
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
+    interface OnAnimationFinishedListener {
+        fun onAnimationFinished()
+    }
+    val lastKnownEpicenter = Rect()
 
-public final class AnimatorLifecycle implements Joinable, Resettable {
-    public final Rect lastKnownEpicenter = new Rect();
-    private Animator mAnimation;
-    private Runnable mCallback;
-    private byte mFlags;
-    private final Handler mHandler = new Handler() {
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case 1:
-                    if (AnimatorLifecycle.this.isPrimed()) {
-                        AnimatorLifecycle.this.start();
-                        return;
-                    }
-                    return;
-                default:
-                    return;
-            }
+    private var animation: Animator? = null
+    private var callback: Runnable? = null
+    private var flags: Byte = 0
+    private var onAnimationFinishedListener: (() -> Unit)? = null
+    private val recentAnimationDumps = ArrayDeque<String>(10)
+
+    private val handler = Handler(Looper.getMainLooper()) { msg ->
+        if (msg.what == MSG_START && isPrimed) start()
+        true
+    }
+
+    fun <T> init(animation: T, callback: Runnable?, flags: Byte) where T : Animator, T : Resettable {
+        if (this.animation != null) {
+            Log.w(TAG, "Called to initialize an animation that was already initialized")
+            reset()
         }
-    };
-    private OnAnimationFinishedListener mOnAnimationFinishedListener;
-    private final ArrayList<String> mRecentAnimationDumps = new ArrayList();
-
-    public interface OnAnimationFinishedListener {
-        void onAnimationFinished();
+        this.animation = animation
+        this.callback = callback
+        this.flags = flags
+        setState(STATE_INIT)
     }
 
-    public <T extends Animator & Resettable> void init(T animation, Runnable callback, byte flags) {
-        if (this.mAnimation != null) {
-            StringWriter buf = new StringWriter();
-            PrintWriter writer = new PrintWriter(buf);
-            writer.println("Called to initialize an animation that was already initialized");
-            new Exception("stack trace").printStackTrace(writer);
-            dump("", writer, null);
-            Log.w("Animations", buf.toString());
-            reset();
-        }
-        this.mAnimation = animation;
-        this.mCallback = callback;
-        this.mFlags = flags;
-        setState((byte) 1);
+    fun schedule() {
+        check(isInitialized)
+        setState(STATE_SCHEDULED)
     }
 
-    public <T extends Animator & Resettable> void schedule() {
-        Preconditions.checkState(isInitialized());
-        setState((byte) 2);
+    fun prime() {
+        check(isScheduled)
+        animation?.setupStartValues()
+        setState(STATE_PRIMED)
+        handler.sendEmptyMessageDelayed(MSG_START, 1000)
     }
 
-    public void prime() {
-        Preconditions.checkState(isScheduled());
-        this.mAnimation.setupStartValues();
-        setState((byte) 4);
-        this.mHandler.sendEmptyMessageDelayed(1, 1000);
-    }
+    fun start() {
+        check(isInitialized || isScheduled || isPrimed)
+        animation?.addListener(object : AnimatorListenerAdapter() {
+            private var cancelled = false
 
-    public void start() {
-        boolean z = isInitialized() || isScheduled() || isPrimed();
-        Preconditions.checkState(z);
-        this.mAnimation.addListener(new AnimatorListenerAdapter() {
-            private boolean mCancelled;
+            override fun onAnimationCancel(animation: Animator) { cancelled = true }
 
-            public void onAnimationCancel(Animator animation) {
-                this.mCancelled = true;
-            }
+            override fun onAnimationEnd(animation: Animator) {
+                animation.removeListener(this)
+                setState(STATE_FINISHED)
 
-            public void onAnimationEnd(Animator animation) {
-                animation.removeListener(this);
-                AnimatorLifecycle.this.setState((byte) 16);
-                if (AnimatorLifecycle.this.mAnimation == null) {
-                    StringWriter buf = new StringWriter();
-                    PrintWriter writer = new PrintWriter(buf);
-                    writer.println("listener notified of animation end when mAnimation==null");
-                    new Exception("stack trace").printStackTrace(writer);
-                    AnimatorLifecycle.this.dump("", writer, null);
-                    writer.println(animation.toString());
-                    Log.w("Animations", buf.toString());
-                    ((Resettable) animation).reset();
+                if (this@AnimatorLifecycle.animation == null) {
+                    Log.w(TAG, "listener notified of animation end when mAnimation==null")
+                    (animation as? Resettable)?.reset()
                 }
-                if (AnimatorLifecycle.this.mOnAnimationFinishedListener != null) {
-                    AnimatorLifecycle.this.mOnAnimationFinishedListener.onAnimationFinished();
+
+                onAnimationFinishedListener?.invoke()
+
+                when {
+                    cancelled -> reset()
+                    callback != null -> runCatching { callback?.run() }
+                        .onFailure { Log.e(TAG, "Could not execute callback", it); reset() }
                 }
-                if (this.mCancelled) {
-                    AnimatorLifecycle.this.reset();
-                } else if (AnimatorLifecycle.this.mCallback != null) {
-                    try {
-                        AnimatorLifecycle.this.mCallback.run();
-                    } catch (Throwable t) {
-                        Log.e("Animations", "Could not execute callback", t);
-                        AnimatorLifecycle.this.reset();
-                    }
-                }
-                if ((AnimatorLifecycle.this.mFlags & 32) != 0) {
-                    AnimatorLifecycle.this.reset();
-                }
+
+                if (flags.toInt() and FLAG_AUTO_RESET != 0) reset()
             }
-        });
-        this.mAnimation.start();
-        setState((byte) 8);
-        if (this.mRecentAnimationDumps != null) {
-            while (this.mRecentAnimationDumps.size() >= 10) {
-                this.mRecentAnimationDumps.remove(9);
-            }
-            this.mRecentAnimationDumps.add(0, this.mAnimation.toString());
+        })
+
+        animation?.start()
+        setState(STATE_RUNNING)
+
+        recentAnimationDumps.apply {
+            while (size >= 10) removeLast()
+            addFirst(animation.toString())
         }
     }
 
-    public void cancel() {
-        if (isRunning()) {
-            this.mAnimation.cancel();
+    fun cancel() { if (isRunning) animation?.cancel() }
+
+    override fun reset() {
+        cancel()
+        (animation as? Resettable)?.reset()
+        flags = 0
+        animation = null
+        callback = null
+        handler.removeMessages(MSG_START)
+    }
+
+    val isInitialized get() = animation != null && flags.toInt() and STATE_INIT != 0
+    val isScheduled get() = animation != null && flags.toInt() and STATE_SCHEDULED != 0
+    val isPrimed get() = animation != null && flags.toInt() and STATE_PRIMED != 0
+    val isRunning get() = animation != null && flags.toInt() and STATE_RUNNING != 0
+    val isFinished get() = animation != null && flags.toInt() and STATE_FINISHED != 0
+
+    fun setOnAnimationFinishedListener(listener: (() -> Unit)?) { onAnimationFinishedListener = listener }
+
+    override fun include(target: View) { (animation as? Joinable)?.include(target) }
+    override fun exclude(target: View) { (animation as? Joinable)?.exclude(target) }
+
+    private fun setState(state: Int) {
+        flags = (flags.toInt() and 0xE0 or state).toByte()
+        handler.removeMessages(MSG_START)
+    }
+
+    fun dump(prefix: String, writer: PrintWriter, root: ViewGroup?) {
+        val stateName = when (flags.toInt() and 0x1F) {
+            STATE_INIT -> "INIT"
+            STATE_SCHEDULED -> "SCHEDULED"
+            STATE_PRIMED -> "PRIMED"
+            STATE_RUNNING -> "RUNNING"
+            STATE_FINISHED -> "FINISHED"
+            else -> "<idle>"
+        }
+        writer.println("${prefix}AnimatorLifecycle State: $stateName")
+        writer.println("${prefix}lastKnownEpicenter: ${lastKnownEpicenter.centerX()},${lastKnownEpicenter.centerY()}")
+        writer.println("${prefix}mAnimation: ${animation?.toString()?.replace("\n", "\n$prefix")}")
+        root?.let { dumpViewHierarchy(prefix, writer, it) }
+    }
+
+    private fun dumpViewHierarchy(prefix: String, writer: PrintWriter, view: View) {
+        if (view is ParticipatesInLaunchAnimation) {
+            writer.println("$prefix${view.toShortString()}")
+        }
+        (view as? ViewGroup)?.let { group ->
+            repeat(group.childCount) { dumpViewHierarchy(prefix, writer, group.getChildAt(it)) }
         }
     }
 
-    public void reset() {
-        cancel();
-        if (this.mAnimation != null) {
-            ((Resettable) this.mAnimation).reset();
-        }
-        this.mFlags = (byte) 0;
-        this.mAnimation = null;
-        this.mCallback = null;
-        this.mHandler.removeMessages(1);
+    private fun View.toShortString() = buildString {
+        append("${this@toShortString::class.simpleName}@${Integer.toHexString(System.identityHashCode(this@toShortString))}")
+        append("{α=%.1f Δy=%.1f s=%.1fx%.1f ".format(alpha, translationY, scaleX, scaleY))
+        append(if (isFocused) "F" else ".")
+        append(if (isSelected) "S" else ".")
+        append("}")
     }
 
-    public boolean isInitialized() {
-        return this.mAnimation != null && (this.mFlags & 1) != 0;
+    companion object {
+        private const val TAG = "Animations"
+        private const val MSG_START = 1
+        private const val STATE_INIT = 1
+        private const val STATE_SCHEDULED = 2
+        private const val STATE_PRIMED = 4
+        private const val STATE_RUNNING = 8
+        private const val STATE_FINISHED = 16
+        private const val FLAG_AUTO_RESET = 32
     }
+}
 
-    public boolean isScheduled() {
-        return this.mAnimation != null && (this.mFlags & 2) != 0;
-    }
-
-    public boolean isPrimed() {
-        return this.mAnimation != null && (this.mFlags & 4) != 0;
-    }
-
-    public boolean isRunning() {
-        return this.mAnimation != null && (this.mFlags & 8) != 0;
-    }
-
-    public boolean isFinished() {
-        return this.mAnimation != null && (this.mFlags & 16) != 0;
-    }
-
-    public void setOnAnimationFinishedListener(OnAnimationFinishedListener listener) {
-        this.mOnAnimationFinishedListener = listener;
-    }
-
-    public void include(View target) {
-        if (this.mAnimation instanceof Joinable) {
-            ((Joinable) this.mAnimation).include(target);
-        }
-    }
-
-    public void exclude(View target) {
-        if (this.mAnimation instanceof Joinable) {
-            ((Joinable) this.mAnimation).exclude(target);
-        }
-    }
-
-    private void setState(byte state) {
-        this.mFlags = (byte) (this.mFlags & -32);
-        this.mFlags = (byte) (this.mFlags | state);
-        this.mHandler.removeMessages(1);
-    }
-
-    public void dump(String prefix, PrintWriter writer, ViewGroup root) {
-        String str;
-        writer.format("%s%s State:\n", prefix, getClass().getSimpleName());
-        prefix = prefix + "  ";
-        writer.format("%sstate: ", prefix);
-        switch (this.mFlags & 31) {
-            case 1:
-                writer.write("INIT");
-                break;
-            case 2:
-                writer.write("SCHEDULED");
-                break;
-            case 4:
-                writer.write("PRIMED");
-                break;
-            case 8:
-                writer.write("RUNNING");
-                break;
-            case 16:
-                writer.write("FINISHED");
-                break;
-            default:
-                writer.write("<idle>");
-                break;
-        }
-        writer.println();
-        writer.format("%sflags: ", prefix);
-        writer.write((this.mFlags & 32) == 0 ? 46 : 82);
-        writer.println();
-        writer.format("%slastKnownEpicenter: %d,%d\n", prefix, Integer.valueOf(this.lastKnownEpicenter.centerX()), Integer.valueOf(this.lastKnownEpicenter.centerY()));
-        String str2 = "%smAnimation: %s\n";
-        Object[] objArr = new Object[2];
-        objArr[0] = prefix;
-        if (this.mAnimation == null) {
-            str = "null";
-        } else {
-            str = this.mAnimation.toString().replaceAll("\n", "\n" + prefix);
-        }
-        objArr[1] = str;
-        writer.format(str2, objArr);
-        writer.format("%sAnimatable Views:\n", prefix);
-        if (root != null) {
-            dumpViewHierarchy(prefix + "  ", writer, root);
-        }
-        if (this.mRecentAnimationDumps != null) {
-            writer.format("%smRecentAnimationDumps: [\n", prefix);
-            int n = this.mRecentAnimationDumps.size();
-            for (int i = 0; i < n; i++) {
-                writer.format("%s    %d) %s\n", prefix, Integer.valueOf(i), this.mRecentAnimationDumps.get(i).replaceAll("\n", "\n" + prefix + "    "));
-            }
-            writer.format("%s]\n", prefix);
-        }
-    }
-
-    private void dumpViewHierarchy(String prefix, PrintWriter writer, View view) {
-        if (view instanceof ParticipatesInLaunchAnimation) {
-            writer.format("%s%s\n", prefix, toShortString(view));
-        }
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            int n = group.getChildCount();
-            for (int i = 0; i < n; i++) {
-                dumpViewHierarchy(prefix, writer, group.getChildAt(i));
-            }
-        }
-    }
-
-    private String toShortString(View view) {
-        char c = '.';
-        if (view == null) {
-            return "null";
-        }
-        char c2;
-        StringBuilder append = new StringBuilder().append(view.getClass().getSimpleName()).append('@').append(Integer.toHexString(System.identityHashCode(view))).append("{").append(String.format("%.1f", Float.valueOf(view.getAlpha()))).append(" ").append(String.format("%.1f", Float.valueOf(view.getTranslationY()))).append(" ").append(String.format("%.1fx%.1f", Float.valueOf(view.getScaleX()), Float.valueOf(view.getScaleY()))).append(" ");
-        if (view.isFocused()) {
-            c2 = 'F';
-        } else {
-            c2 = '.';
-        }
-        StringBuilder append2 = append.append(c2);
-        if (view.isSelected()) {
-            c = 'S';
-        }
-        return append2.append(c).append("}").toString();
-    }
+@Deprecated("Old api")
+inline fun <reified T> AnimatorLifecycle.schedule() {
+    // Member schedule() is chosen (no type args), this extension is only for schedule<T>()
+    schedule()
 }

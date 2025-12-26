@@ -7,8 +7,13 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
+        optIn.set(listOf(
+            "androidx.compose.material3.ExperimentalMaterial3Api",
+            "androidx.compose.foundation.ExperimentalFoundationApi",
+            "androidx.compose.foundation.layout.ExperimentalLayoutApi"
+        ))
     }
 }
 
@@ -26,18 +31,11 @@ android {
 
         vectorDrawables.useSupportLibrary = true
 
-        // Syntax for adding list of resources in KTS
         resourceConfigurations.addAll(
             listOf("en", "ru", "uk", "it", "fr", "es", "de", "pl", "zh-rCN")
         )
 
-        // Setting the output apk name
         setProperty("archivesBaseName", "LeanbackOnFire_v$versionName")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
     }
 
     packaging {
@@ -48,12 +46,8 @@ android {
 
     buildTypes {
         release {
-            // Note: Lint options inside build types are deprecated in newer AGP versions.
-            // Usually, these go into the top-level lint {} block (see below).
-            // If you must keep them here specifically for release, strict KTS mapping is difficult
-            // without using the top-level block.
-
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android.txt"),
                 "proguard-rules.pro"
@@ -96,7 +90,7 @@ dependencies {
     implementation(libs.google.material)
 
     // LocalWeather
-    implementation(libs.local.weather)
+//    implementation(libs.local.weather)
 
     implementation(libs.kotlinx.coroutines.android)
 }

@@ -44,7 +44,7 @@ open class AppsAdapter(
     context: Context,
     actionOpenLaunchPointListener: ActionOpenLaunchPointListener?,
     vararg appTypes: AppCategory?
-) : RowViewAdapter<AppViewHolder?>(context), AppsRanker.RankingListener, LaunchPointList.Listener,
+) : RowViewAdapter<AppViewHolder>(context), AppsRanker.RankingListener, LaunchPointList.Listener,
     OnSharedPreferenceChangeListener {
     private val TAG by lazy { if (BuildConfig.DEBUG) ("[*]" + javaClass.simpleName).take(21) else javaClass.simpleName }
     private val mActionOpenLaunchPointListener: ActionOpenLaunchPointListener?
@@ -356,10 +356,8 @@ open class AppsAdapter(
 
         override fun onPostExecute(launchPoints: ArrayList<LaunchPoint>?) {
             val changes =
-                Lists.getChanges(mLaunchPoints, launchPoints, mAppsManager!!.launchPointComparator)
-            if (launchPoints != null) {
-                mLaunchPoints = launchPoints
-            }
+                Lists.getChanges(mLaunchPoints, launchPoints!!, mAppsManager!!.launchPointComparator!!)
+            mLaunchPoints = launchPoints
             onPostRefresh()
             for (change in changes) {
                 when (change.type) {
@@ -431,7 +429,7 @@ open class AppsAdapter(
             mIconView = null
             mLabelView = null
             v.let {
-                mMainView = it.findViewById(R.id.main)
+                mMainView = it.findViewById(R.id.main_list_view)
                 mIconView = it.findViewById(R.id.icon)
                 mLabelView = it.findViewById(R.id.label)
             }

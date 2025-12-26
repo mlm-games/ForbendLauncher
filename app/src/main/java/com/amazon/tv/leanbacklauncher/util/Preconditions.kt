@@ -1,22 +1,16 @@
-package com.amazon.tv.leanbacklauncher.util;
+package com.amazon.tv.leanbacklauncher.util
 
-public final class Preconditions {
-    public static <T> T checkNotNull(T reference) {
-        if (reference != null) {
-            return reference;
-        }
-        throw new NullPointerException();
+object Preconditions {
+    @JvmStatic
+    fun <T> checkNotNull(reference: T?): T = reference ?: throw NullPointerException()
+
+    @JvmStatic
+    fun checkState(expression: Boolean) {
+        if (!expression) throw IllegalStateException()
     }
 
-    public static void checkState(boolean expression) {
-        if (!expression) {
-            throw new IllegalStateException();
-        }
-    }
-
-    public static void checkArgument(boolean expression) {
-        if (!expression) {
-            throw new IllegalArgumentException();
-        }
+    @JvmStatic
+    fun checkArgument(expression: Boolean) {
+        if (!expression) throw IllegalArgumentException()
     }
 }

@@ -1,214 +1,97 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.animation.Animator;
-import android.animation.TimeInterpolator;
-import android.util.ArrayMap;
-import android.view.View;
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.TimeInterpolator
+import android.view.View
 
-import com.amazon.tv.leanbacklauncher.util.Preconditions;
+abstract class ForwardingAnimator<T : Animator>(
+    protected val mDelegate: T
+) : Animator(), Joinable, Resettable {
 
-import java.util.ArrayList;
+    private val listenerMap = mutableMapOf<AnimatorListener, AnimatorListener>()
+    private val pauseListenerMap = mutableMapOf<AnimatorPauseListener, AnimatorPauseListener>()
 
-public abstract class ForwardingAnimator<T extends Animator> extends Animator implements Joinable, Resettable {
-    protected final T mDelegate;
-    private ArrayMap<AnimatorListener, AnimatorListener> mListeners;
-    private ArrayMap<AnimatorPauseListener, AnimatorPauseListener> mPauseListeners;
+    override fun reset() { (mDelegate as? Resettable)?.reset() }
+    override fun include(target: View) { (mDelegate as? Joinable)?.include(target) }
+    override fun exclude(target: View) { (mDelegate as? Joinable)?.exclude(target) }
 
-    private static final class ProxyingAnimatorListener implements AnimatorListener {
-        private final AnimatorListener mDelegate;
-        private final Animator mProxyAnimator;
+    override fun start() = mDelegate.start()
+    override fun cancel() = mDelegate.cancel()
+    override fun end() = mDelegate.end()
+    override fun pause() = mDelegate.pause()
+    override fun resume() = mDelegate.resume()
+    override fun isPaused() = mDelegate.isPaused
+    override fun isRunning() = mDelegate.isRunning
+    override fun isStarted() = mDelegate.isStarted
 
-        public ProxyingAnimatorListener(AnimatorListener delegate, Animator proxyAnimator) {
-            this.mDelegate = delegate;
-            this.mProxyAnimator = proxyAnimator;
-        }
+    override fun getStartDelay() = mDelegate.startDelay
+    override fun setStartDelay(startDelay: Long) { mDelegate.startDelay = startDelay }
+    override fun getDuration() = mDelegate.duration
+    override fun setDuration(duration: Long) = apply { mDelegate.duration = duration }
+    override fun getInterpolator(): TimeInterpolator = mDelegate.interpolator
+    override fun setInterpolator(value: TimeInterpolator?) { mDelegate.interpolator = value }
 
-        public void onAnimationStart(Animator unused) {
-            this.mDelegate.onAnimationStart(this.mProxyAnimator);
-        }
+    override fun setupEndValues() = mDelegate.setupEndValues()
+    override fun setupStartValues() = mDelegate.setupStartValues()
+    override fun setTarget(target: Any?) = mDelegate.setTarget(target)
 
-        public void onAnimationEnd(Animator unused) {
-            this.mDelegate.onAnimationEnd(this.mProxyAnimator);
-        }
-
-        public void onAnimationCancel(Animator unused) {
-            this.mDelegate.onAnimationCancel(this.mProxyAnimator);
-        }
-
-        public void onAnimationRepeat(Animator unused) {
-            this.mDelegate.onAnimationRepeat(this.mProxyAnimator);
-        }
-    }
-
-    private static final class ProxyingAnimatorPauseListener implements AnimatorPauseListener {
-        private final AnimatorPauseListener mDelegate;
-        private final Animator mProxyAnimator;
-
-        public ProxyingAnimatorPauseListener(AnimatorPauseListener delegate, Animator proxyAnimator) {
-            this.mDelegate = delegate;
-            this.mProxyAnimator = proxyAnimator;
-        }
-
-        public void onAnimationPause(Animator unused) {
-            this.mDelegate.onAnimationPause(this.mProxyAnimator);
-        }
-
-        public void onAnimationResume(Animator unused) {
-            this.mDelegate.onAnimationResume(this.mProxyAnimator);
+    override fun addListener(listener: AnimatorListener) {
+        if (listener !in listenerMap) {
+            val proxy = ProxyListener(listener)
+            listenerMap[listener] = proxy
+            mDelegate.addListener(proxy)
         }
     }
 
-    public ForwardingAnimator(T delegate) {
-        this.mDelegate = Preconditions.checkNotNull(delegate);
+    override fun removeListener(listener: AnimatorListener) {
+        listenerMap.remove(listener)?.let { mDelegate.removeListener(it) }
     }
 
-    public void reset() {
-        if (this.mDelegate instanceof Resettable) {
-            ((Resettable) this.mDelegate).reset();
+    override fun getListeners(): ArrayList<AnimatorListener> = ArrayList(listenerMap.keys)
+
+    override fun addPauseListener(listener: AnimatorPauseListener) {
+        if (listener !in pauseListenerMap) {
+            val proxy = ProxyPauseListener(listener)
+            pauseListenerMap[listener] = proxy
+            mDelegate.addPauseListener(proxy)
         }
     }
 
-    public void include(View target) {
-        if (this.mDelegate instanceof Joinable) {
-            ((Joinable) this.mDelegate).include(target);
-        }
+    override fun removePauseListener(listener: AnimatorPauseListener) {
+        pauseListenerMap.remove(listener)?.let { mDelegate.removePauseListener(it) }
     }
 
-    public void exclude(View target) {
-        if (this.mDelegate instanceof Joinable) {
-            ((Joinable) this.mDelegate).exclude(target);
-        }
+    override fun removeAllListeners() {
+        mDelegate.removeAllListeners()
+        listenerMap.clear()
+        pauseListenerMap.clear()
     }
 
-    public void start() {
-        this.mDelegate.start();
+    private inner class ProxyListener(private val delegate: AnimatorListener) : AnimatorListener {
+        override fun onAnimationStart(a: Animator) = delegate.onAnimationStart(this@ForwardingAnimator)
+        override fun onAnimationEnd(a: Animator) = delegate.onAnimationEnd(this@ForwardingAnimator)
+        override fun onAnimationCancel(a: Animator) = delegate.onAnimationCancel(this@ForwardingAnimator)
+        override fun onAnimationRepeat(a: Animator) = delegate.onAnimationRepeat(this@ForwardingAnimator)
     }
 
-    public void cancel() {
-        this.mDelegate.cancel();
+    private inner class ProxyPauseListener(private val delegate: AnimatorPauseListener) : AnimatorPauseListener {
+        override fun onAnimationPause(a: Animator) = delegate.onAnimationPause(this@ForwardingAnimator)
+        override fun onAnimationResume(a: Animator) = delegate.onAnimationResume(this@ForwardingAnimator)
+    }
+}
+
+abstract class ForwardingAnimatorSet : ForwardingAnimator<AnimatorSet>(AnimatorSet()) {
+    
+    override fun reset() {
+        mDelegate.childAnimations.filterIsInstance<Resettable>().forEach { it.reset() }
     }
 
-    public void end() {
-        this.mDelegate.end();
+    override fun include(target: View) {
+        mDelegate.childAnimations.filterIsInstance<Joinable>().forEach { it.include(target) }
     }
 
-    public void pause() {
-        this.mDelegate.pause();
-    }
-
-    public void resume() {
-        this.mDelegate.resume();
-    }
-
-    public boolean isPaused() {
-        return this.mDelegate.isPaused();
-    }
-
-    public long getStartDelay() {
-        return this.mDelegate.getStartDelay();
-    }
-
-    public void setStartDelay(long startDelay) {
-        this.mDelegate.setStartDelay(startDelay);
-    }
-
-    public long getDuration() {
-        return this.mDelegate.getDuration();
-    }
-
-    public Animator setDuration(long duration) {
-        this.mDelegate.setDuration(duration);
-        return this;
-    }
-
-    public TimeInterpolator getInterpolator() {
-        return this.mDelegate.getInterpolator();
-    }
-
-    public void setInterpolator(TimeInterpolator value) {
-        this.mDelegate.setInterpolator(value);
-    }
-
-    public void addListener(AnimatorListener listener) {
-        if (this.mListeners == null) {
-            this.mListeners = new ArrayMap();
-        }
-        if (!this.mListeners.containsKey(listener)) {
-            AnimatorListener proxy = new ProxyingAnimatorListener(listener, this);
-            this.mListeners.put(listener, proxy);
-            this.mDelegate.addListener(proxy);
-        }
-    }
-
-    public void removeListener(AnimatorListener listener) {
-        if (this.mListeners != null) {
-            AnimatorListener proxy = this.mListeners.remove(listener);
-            if (proxy != null) {
-                this.mDelegate.removeListener(proxy);
-            }
-            if (this.mListeners.isEmpty()) {
-                this.mListeners = null;
-            }
-        }
-    }
-
-    public ArrayList<AnimatorListener> getListeners() {
-        if (this.mListeners == null) {
-            return new ArrayList();
-        }
-        return new ArrayList(this.mListeners.keySet());
-    }
-
-    public void addPauseListener(AnimatorPauseListener listener) {
-        if (this.mPauseListeners == null) {
-            this.mPauseListeners = new ArrayMap();
-        }
-        if (!this.mPauseListeners.containsKey(listener)) {
-            AnimatorPauseListener proxy = new ProxyingAnimatorPauseListener(listener, this);
-            this.mPauseListeners.put(listener, proxy);
-            this.mDelegate.addPauseListener(proxy);
-        }
-    }
-
-    public void removePauseListener(AnimatorPauseListener listener) {
-        if (this.mPauseListeners != null) {
-            AnimatorPauseListener proxy = this.mPauseListeners.remove(listener);
-            if (proxy != null) {
-                this.mDelegate.removePauseListener(proxy);
-            }
-            if (this.mPauseListeners.isEmpty()) {
-                this.mPauseListeners = null;
-            }
-        }
-    }
-
-    public void removeAllListeners() {
-        this.mDelegate.removeAllListeners();
-        this.mListeners = null;
-        this.mPauseListeners = null;
-    }
-
-    public boolean isRunning() {
-        return this.mDelegate.isRunning();
-    }
-
-    public boolean isStarted() {
-        return this.mDelegate.isStarted();
-    }
-
-    public void setupEndValues() {
-        this.mDelegate.setupEndValues();
-    }
-
-    public void setupStartValues() {
-        this.mDelegate.setupStartValues();
-    }
-
-    public void setTarget(Object target) {
-        this.mDelegate.setTarget(target);
-    }
-
-    public String toString() {
-        return "ForwardingAnimator@" + Integer.toHexString(hashCode()) + '{' + this.mDelegate.toString() + '}';
+    override fun exclude(target: View) {
+        mDelegate.childAnimations.filterIsInstance<Joinable>().forEach { it.exclude(target) }
     }
 }

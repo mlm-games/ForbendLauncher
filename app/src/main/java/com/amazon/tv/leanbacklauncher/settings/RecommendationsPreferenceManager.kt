@@ -76,7 +76,7 @@ class RecommendationsPreferenceManager(context: Context) {
         private val mPackageManager: PackageManager = context.packageManager
         override fun callServiceInBackground(iRecommendationsService: IRecommendationsService) {
             try {
-                val blacklist = iRecommendationsService.blacklistedPackages
+                val blacklist = iRecommendationsService.getBlacklistedPackages()
                 blacklist?.let {
                     mBlacklistedPackageCount = blacklist.size
                     for (pkg in blacklist) {
@@ -106,55 +106,65 @@ class RecommendationsPreferenceManager(context: Context) {
 
         @Throws(RemoteException::class)
         override fun callServiceInBackground(iRecommendationsService: IRecommendationsService) {
-            val packages = iRecommendationsService.recommendationsPackages
-            val blacklistedPackages = mutableListOf(*iRecommendationsService.blacklistedPackages)
+            val packages = iRecommendationsService.getRecommendationsPackages() ?: return
+            val blacklistedPackages = iRecommendationsService.getBlacklistedPackages()
+                ?.toSet() ?: emptySet()
+
             mPackages = ArrayList(packages.size)
-            val pm = this.mContext.packageManager
+            val pm = mContext.packageManager
+
             for (packageName in packages) {
-                val info = PackageInfo()
-                info.packageName = packageName
                 try {
+                    val info = PackageInfo().apply {
+                        this.packageName = packageName
+                    }
                     val appInfo = pm.getApplicationInfo(packageName, 0)
                     val res = pm.getResourcesForApplication(packageName)
+
                     info.appTitle = pm.getApplicationLabel(appInfo)
-                    if (appInfo.banner != 0) {
-                        info.banner = ResourcesCompat.getDrawable(res, appInfo.banner, null)
-                    } else {
-                        val intent = Intent()
-                        intent.addCategory("android.intent.category.LEANBACK_LAUNCHER")
-                        intent.action = "android.intent.action.MAIN"
-                        intent.setPackage(packageName)
-                        val resolveInfo = pm.resolveActivity(intent, 0)
-                        if (resolveInfo?.activityInfo != null) {
-                            if (resolveInfo.activityInfo.banner != 0) {
-                                info.banner = ResourcesCompat.getDrawable(
-                                    res,
-                                    resolveInfo.activityInfo.banner,
-                                    null
-                                )
-                            }
-                            if (info.banner == null && resolveInfo.activityInfo.logo != 0) {
-                                info.banner = ResourcesCompat.getDrawable(
-                                    res,
-                                    resolveInfo.activityInfo.logo,
-                                    null
-                                )
-                            }
-                        }
-                    }
+                    info.banner = resolveBanner(pm, res, appInfo, packageName)
+
                     if (info.banner == null && appInfo.icon != 0) {
                         info.icon = ResourcesCompat.getDrawable(res, appInfo.icon, null)
                     }
-                    if (TextUtils.isEmpty(info.appTitle)) {
+                    if (info.appTitle.isNullOrEmpty()) {
                         info.appTitle = packageName
                     }
                     if (info.banner == null && info.icon == null) {
-                        info.icon = ContextCompat.getDrawable(this.mContext, 17301651)
+                        info.icon = ContextCompat.getDrawable(mContext, 17301651)
                     }
-                    info.blacklisted = blacklistedPackages.contains(packageName)
+
+                    info.blacklisted = packageName in blacklistedPackages
                     mPackages?.add(info)
                 } catch (e: PackageManager.NameNotFoundException) {
+                    // Package not installed, skip
                 }
+            }
+        }
+
+        private fun resolveBanner(
+            pm: PackageManager,
+            res: android.content.res.Resources,
+            appInfo: android.content.pm.ApplicationInfo,
+            packageName: String
+        ): Drawable? {
+            if (appInfo.banner != 0) {
+                return ResourcesCompat.getDrawable(res, appInfo.banner, null)
+            }
+
+            val intent = Intent(Intent.ACTION_MAIN).apply {
+                addCategory("android.intent.category.LEANBACK_LAUNCHER")
+                setPackage(packageName)
+            }
+
+            val resolveInfo = pm.resolveActivity(intent, 0)?.activityInfo ?: return null
+
+            return when {
+                resolveInfo.banner != 0 ->
+                    ResourcesCompat.getDrawable(res, resolveInfo.banner, null)
+                resolveInfo.logo != 0 ->
+                    ResourcesCompat.getDrawable(res, resolveInfo.logo, null)
+                else -> null
             }
         }
 
@@ -176,16 +186,18 @@ class RecommendationsPreferenceManager(context: Context) {
         private val mPackageName: String?,
         private val mBlacklisted: Boolean
     ) : AsyncRecommendationsClient(context) {
+
         @Throws(RemoteException::class)
         override fun callServiceInBackground(iRecommendationsService: IRecommendationsService) {
-            val blacklist: MutableList<String?> =
-                ArrayList(mutableListOf(*iRecommendationsService.blacklistedPackages))
-            if (!mBlacklisted) {
-                blacklist.remove(mPackageName)
-            } else if (!blacklist.contains(mPackageName)) {
-                blacklist.add(mPackageName)
+            val currentBlacklist = iRecommendationsService.getBlacklistedPackages() ?: emptyArray()
+            val blacklist = currentBlacklist.toMutableList()
+
+            when {
+                mBlacklisted && mPackageName !in blacklist -> blacklist.add(mPackageName!!)
+                !mBlacklisted -> blacklist.remove(mPackageName)
             }
-            iRecommendationsService.blacklistedPackages = blacklist.toTypedArray()
+
+            iRecommendationsService.setBlacklistedPackages(blacklist.toTypedArray())
         }
     }
 

@@ -83,7 +83,6 @@ import com.amazon.tv.leanbacklauncher.notifications.NotificationRowView.Notifica
 import com.amazon.tv.leanbacklauncher.notifications.NotificationsAdapter
 import com.amazon.tv.leanbacklauncher.settings.LegacyHomeScreenSettingsActivity
 import com.amazon.tv.leanbacklauncher.settings.SettingsActivity
-import com.amazon.tv.leanbacklauncher.util.OpenWeatherIcons
 import com.amazon.tv.leanbacklauncher.util.Partner
 import com.amazon.tv.leanbacklauncher.util.Permission
 import com.amazon.tv.leanbacklauncher.util.TvSearchIconLoader
@@ -94,27 +93,9 @@ import com.amazon.tv.leanbacklauncher.wallpaper.LauncherWallpaper
 import com.amazon.tv.leanbacklauncher.wallpaper.WallpaperInstaller
 import com.amazon.tv.leanbacklauncher.widget.EditModeView
 import com.amazon.tv.leanbacklauncher.widget.EditModeView.OnEditModeUninstallPressedListener
-import com.google.gson.GsonBuilder
-import de.interaapps.localweather.LocalWeather
-import de.interaapps.localweather.Weather
-import de.interaapps.localweather.utils.Lang
-import de.interaapps.localweather.utils.LocationFailedEnum
-import de.interaapps.localweather.utils.Units
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.json.JSONObject
-import java.io.File
 import java.io.FileDescriptor
 import java.io.PrintWriter
-import java.lang.String.format
 import java.lang.ref.WeakReference
-import java.net.URL
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -156,19 +137,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             epicenter.bottom = epicenter.top + (v.height.toFloat() * v.scaleY).roundToInt()
         }
     }
-
-    // Weather
-    private var localWeather: LocalWeather? = null
-
-    // Weather constants
-    private val gson by lazy { GsonBuilder().setPrettyPrinting().create() }
-    private val maxCacheAge = TimeUnit.MINUTES.toMillis(30) // 30 minutes
-
-    // Weather Animation constants
-    private val showCycleDur: Long = TimeUnit.SECONDS.toMillis(10) // 10 seconds
-    private val fadeInDur: Long = 300L // milliseconds
-    private val fadeOutDur: Long = 500L
-    private var weatherAnimationJob: Job? = null
 
     // Core components
     private val mHandler: Handler = MainActivityMessageHandler(this)
@@ -342,7 +310,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     private val mSearchIconCallbacks: LoaderManager.LoaderCallbacks<Drawable> =
         object : LoaderManager.LoaderCallbacks<Drawable> {
             override fun onCreateLoader(id: Int, args: Bundle?): Loader<Drawable> {
-                return TvSearchIconLoader(this@MainActivity.applicationContext)
+                return TvSearchIconLoader(this@MainActivity.applicationContext) as Loader<Drawable>
             }
 
             override fun onLoadFinished(loader: Loader<Drawable>, data: Drawable?) {
@@ -357,7 +325,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     private val mSearchSuggestionsCallbacks: LoaderManager.LoaderCallbacks<Array<String>> =
         object : LoaderManager.LoaderCallbacks<Array<String>> {
             override fun onCreateLoader(id: Int, args: Bundle?): Loader<Array<String>> {
-                return TvSearchSuggestionsLoader(this@MainActivity.applicationContext)
+                return TvSearchSuggestionsLoader(this@MainActivity.applicationContext) as Loader<Array<String>>
             }
 
             override fun onLoadFinished(loader: Loader<Array<String>>, data: Array<String>?) {
@@ -380,7 +348,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         val appContext = applicationContext
         setContentView(R.layout.activity_main)
 
-        if (Partner.get(this).showLiveTvOnStartUp() && checkFirstRunAfterBoot()) {
+        if (Partner.get(this).showLiveTvOnStartUp && checkFirstRunAfterBoot()) {
             val tvIntent = Intent("android.intent.action.VIEW", TvContract.buildChannelUri(0))
             tvIntent.putExtra("com.google.android.leanbacklauncher.extra.TV_APP_ON_BOOT", true)
             if (packageManager.queryIntentActivities(tvIntent, 1).isNotEmpty()) {
@@ -491,7 +459,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                                     mNotificationsView = it.notificationRow
                                     mNotificationsView?.setListener(mNotifListener)
                                 }
-                                homeScreenMessaging.setListener { state ->
+                                homeScreenMessaging.listener = { state ->
                                     mHandler.sendMessageDelayed(
                                         mHandler.obtainMessage(4, state, 0),
                                         500
@@ -549,15 +517,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
 
         // fix int options migrate
         RowPreferences.fixRowPrefs()
-
-        // LocalWeather https://github.com/interaapps/LocalWeather-Android
-        if (RowPreferences.isWeatherEnabled(this)) {
-            localWeather = LocalWeather(
-                this@MainActivity,
-                getWeatherApiKey(this)
-            )
-            // initializeWeather() // already in addWidget()
-        }
     }
 
     public override fun onDestroy() {
@@ -645,8 +604,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (RowPreferences.isWeatherEnabled(this))
-            localWeather?.onActivityResult(requestCode, resultCode, data)
         if (requestCode == UNINSTALL_CODE && resultCode != 0) {
             if (resultCode == -1) {
                 editModeView?.uninstallComplete()
@@ -662,8 +619,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (RowPreferences.isWeatherEnabled(this))
-            localWeather?.onRequestPermissionResult(requestCode, permissions, grantResults)
         when (requestCode) {
             PERMISSIONS_REQUEST_LOCATION -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -677,238 +632,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         }
     }
 
-    private fun initializeWeather() {
-        localWeather?.let { lw ->
-            setupWeatherDefaults(lw)
-
-            if (shouldUseCurrentLocation()) {
-                setupLocationBasedWeather(lw)
-            } else {
-                setupManualLocationWeather(lw)
-            }
-
-            setupWeatherCallbacks(lw)
-        }
-    }
-
-    private fun setupWeatherDefaults(lw: LocalWeather) {
-        val ul = Locale.getDefault().isO3Language
-        lw.lang = when {
-            ul.equals("rus", true) -> Lang.RUSSIAN
-            ul.equals("ukr", true) -> Lang.UKRAINIAN
-            ul.equals("ita", true) -> Lang.ITALIAN
-            ul.equals("fra", true) -> Lang.FRENCH
-            ul.equals("esp", true) -> Lang.SPANISH
-            ul.equals("deu", true) -> Lang.GERMAN
-            else -> Lang.ENGLISH
-        }
-        lw.unit = if (RowPreferences.isImperialUnits(this)) Units.IMPERIAL else Units.METRIC
-    }
-
-    private fun shouldUseCurrentLocation(): Boolean {
-        return RowPreferences.isUseLocationEnabled(this) // && !Util.isAmazonDev(this)
-    }
-
-    private fun setupLocationBasedWeather(lw: LocalWeather) {
-        if (Util.isAmazonDev(this)) {
-            lw.useCurrentLocation = false
-            fetchGeoIPFallback(lw)
-        } else {
-            lw.useCurrentLocation = true
-            lw.updateCurrentLocation = true
-            lw.updateLocationInterval = TimeUnit.MINUTES.toMillis(10) // FIXME: no updates
-        }
-    }
-
-    private fun setupManualLocationWeather(lw: LocalWeather) {
-        try {
-            lw.useCurrentLocation = false
-            RowPreferences.getUserLocation(this)?.takeIf { it.isNotBlank() }?.let { userLoc ->
-                when {
-                    userLoc.isDigitsOnly() -> handleCityIdWeather(lw, userLoc)
-                    isCoordinateLocation(userLoc) -> handleCoordinateWeather(lw, userLoc)
-                    else -> handleCityNameWeather(lw, userLoc)
-                }
-            } ?: run {
-//                if (Util.isAmazonDev(this)) {
-//                    fetchGeoIPFallback(lw)
-//                } else {
-                LauncherApp.toast(R.string.user_location_warning, true)
-//                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error setting up manual location weather", e)
-        }
-    }
-
-    private fun isCoordinateLocation(location: String): Boolean {
-        val parts = location.split(", ")
-        return parts.size == 2 &&
-                parts.first().toDoubleOrNull() != null &&
-                parts.last().toDoubleOrNull() != null
-    }
-
-    private fun handleCityIdWeather(lw: LocalWeather, cityId: String) {
-        if (isWeatherCacheValid) {
-            readJsonWeather(JSONFILE)
-        } else {
-            lw.fetchCurrentWeatherByCityId(cityId)
-        }
-    }
-
-    private fun handleCoordinateWeather(lw: LocalWeather, coords: String) {
-        val parts = coords.split(", ")
-        val lat = parts.first().toDouble()
-        val lon = parts.last().toDouble()
-
-        if (isWeatherCacheValid) {
-            readJsonWeather(JSONFILE)
-        } else {
-            lw.fetchCurrentWeatherByLocation(lat, lon)
-        }
-    }
-
-    private fun handleCityNameWeather(lw: LocalWeather, cityName: String) {
-        if (isWeatherCacheValid) {
-            readJsonWeather(JSONFILE)
-        } else {
-            lw.fetchCurrentWeatherByCityName(cityName)
-        }
-    }
-
-    private fun fetchGeoIPFallback(lw: LocalWeather) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val geoJson = URL("http://api.sypexgeo.net").readText()
-                if (geoJson.isNotEmpty()) {
-                    val mJsonResponse = JSONObject(geoJson)
-                    val mCityObj = mJsonResponse.getJSONObject("city")
-
-                    when {
-                        mCityObj.has("id") && !mCityObj.isNull("id") -> {
-                            val mCode = mCityObj.getInt("id").toString()
-                            if (isWeatherCacheValid) {
-                                withContext(Dispatchers.Main) { readJsonWeather(JSONFILE) }
-                            } else {
-                                lw.fetchCurrentWeatherByCityId(mCode)
-                            }
-                        }
-
-                        mCityObj.has("lat") && mCityObj.has("lon") -> {
-                            val lat = mCityObj.getDouble("lat")
-                            val lon = mCityObj.getDouble("lon")
-                            if (isWeatherCacheValid) {
-                                withContext(Dispatchers.Main) { readJsonWeather(JSONFILE) }
-                            } else {
-                                lw.fetchCurrentWeatherByLocation(lat, lon)
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "GeoIP fallback failed", e)
-            }
-        }
-    }
-
-    private fun setupWeatherCallbacks(lw: LocalWeather) {
-        lw.weatherCallback = object : LocalWeather.WeatherCallback {
-            override fun onSuccess(weather: Weather) {
-                writeJsonWeather(weather)
-                readJsonWeather(JSONFILE)
-            }
-
-            override fun onFailure(exception: Throwable?) {
-                Log.e(TAG, "Weather fetching failed: ${exception?.message}")
-                LauncherApp.toast("Weather error: ${exception?.message}", true)
-            }
-        }
-
-        lw.fetchCurrentLocation(object : LocalWeather.CurrentLocationCallback {
-            override fun onSuccess(location: Location) {
-                if (isWeatherCacheValid) {
-                    readJsonWeather(JSONFILE)
-                } else {
-                    lw.fetchCurrentWeatherByLocation(location)
-                }
-            }
-
-            override fun onFailure(failed: LocationFailedEnum) {
-                Log.e(TAG, "Location fetching failed: $failed")
-                fetchGeoIPFallback(lw)
-            }
-        })
-    }
-
-    private val isWeatherCacheValid: Boolean
-        get() = File(JSONFILE).let { it.exists() && it.lastModified() + maxCacheAge > System.currentTimeMillis() }
-
-
-    private fun writeJsonWeather(weather: Weather) {
-        try {
-            // Log.d(TAG, "writeJsonWeather JSON: ${gson.toJson(weather)}")
-            File(JSONFILE).writeText(gson.toJson(weather))
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to write weather cache", e)
-        }
-    }
-
-    private fun readJsonWeather(filePath: String) {
-        try {
-            val cachedWeather = gson.fromJson(
-                File(filePath).bufferedReader().use { it.readText() },
-                Weather::class.java
-            )
-            cachedWeather?.let { updateWeatherDetails(it) }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to read weather cache", e)
-        }
-    }
-
-    @SuppressLint("SetTextI18n")
-    private fun updateWeatherDetails(weather: Weather) {
-        // Get views
-        val weatherVG = findViewById<ViewGroup?>(R.id.weather)
-        val detailsVG = findViewById<ViewGroup?>(R.id.details)
-        val curLocTV = findViewById<TextView?>(R.id.curLocation)?.apply {
-            setupMarquee()
-        }
-        // Set Location Info
-        curLocTV?.text = weather.name.ifEmpty { "" }
-        // Set Weather Info
-        weatherVG?.let { group ->
-            findViewById<AppCompatImageView>(R.id.weather_icon)?.let { icon ->
-                OpenWeatherIcons(this, weather.icons[0], icon)
-                icon.visibility = View.VISIBLE
-            }
-
-            findViewById<TextView>(R.id.curTemp)?.text =
-                "${weather.temperature.toInt()}${getTempUnit()}"
-
-            group.visibility = View.GONE
-        }
-        // Set Weather details
-        detailsVG?.let { details ->
-            findViewById<TextView>(R.id.hilotemp)?.text = getHiLoTempText(weather)
-            findViewById<TextView>(R.id.pressure)?.text = getPressureText(weather)
-            findViewById<TextView>(R.id.humidity)?.text =
-                getString(R.string.weather_humidity, weather.humidity.toInt())
-            findViewById<TextView>(R.id.wind)?.text = getWindText(weather)
-            findViewById<TextView>(R.id.wDescription)?.apply {
-                text = weather.descriptions[0]
-                setupMarquee()
-            }
-
-            details.visibility = View.GONE
-        }
-        // Show
-        if (RowPreferences.showLocation(this)) {
-            showLocation(weatherVG, detailsVG, curLocTV)
-        } else {
-            showWeather(weatherVG, detailsVG)
-        }
-    }
-
     private fun TextView.setupMarquee() {
         ellipsize = TextUtils.TruncateAt.MARQUEE
         isSingleLine = true
@@ -916,163 +639,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         isSelected = true
         isFocusableInTouchMode = false
         isFocusable = false
-    }
-
-    private fun getTempUnit(): String = if (localWeather?.unit == Units.METRIC) "℃" else "℉"
-
-    private fun getHiLoTempText(weather: Weather): String {
-        return getString(
-            R.string.weather_hilotemp,
-            format(Locale.getDefault(), "%.0f", weather.minTemperature),
-            format(Locale.getDefault(), "%.0f", weather.maxTemperature),
-            getTempUnit()
-        )
-    }
-
-    private fun getPressureText(weather: Weather): String {
-        return if (localWeather?.lang == Lang.RUSSIAN) {
-            getString(
-                R.string.weather_pressure,
-                format(Locale.getDefault(), "%.0f", weather.pressure / 1.333),
-                getString(R.string.weather_pressure_mm)
-            )
-        } else {
-            getString(
-                R.string.weather_pressure,
-                weather.pressure.toInt().toString(),
-                getString(R.string.weather_pressure_hp)
-            )
-        }
-    }
-
-    private fun getWindText(weather: Weather): String {
-        val speedUnit = if (localWeather?.unit == Units.METRIC) {
-            getString(R.string.weather_speed_m)
-        } else {
-            getString(R.string.weather_speed_i)
-        }
-        val windDir = getCardinalDirection(weather.windAngle)
-
-        return getString(
-            R.string.weather_wind,
-            format(Locale.getDefault(), "%.1f", weather.windSpeed),
-            speedUnit,
-            windDir
-        )
-    }
-
-    private fun getCardinalDirection(angle: Double): String {
-        val directions = if (localWeather?.lang == Lang.RUSSIAN)
-            listOf("C", "СВ", "В", "ЮВ", "Ю", "ЮЗ", "З", "СЗ", "C")
-        else
-            listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW", "N")
-        return directions[(angle % 360 / 45).roundToInt()]
-    }
-
-    private fun showLocation(
-        weatherView: ViewGroup?,
-        detailsView: ViewGroup?,
-        curLocView: TextView?
-    ) {
-        weatherView?.visibility = View.GONE
-        curLocView?.run {
-            cancelWeatherAnimations()
-            alpha = 0f
-            visibility = View.VISIBLE
-            animate()
-                .alpha(1f)
-                .setDuration(fadeInDur * 2)
-                .withEndAction {
-                    animate()
-                        .alpha(0f)
-                        .setDuration(fadeOutDur)
-                        .withEndAction {
-                            visibility = View.GONE
-                            showWeather(weatherView, detailsView)
-                        }
-                        .start()
-                }
-                .start()
-        }
-    }
-
-    private fun showWeather(weatherView: ViewGroup?, detailsView: ViewGroup?) {
-        cancelWeatherAnimations()
-
-        // Initial state
-        weatherView?.apply {
-            alpha = 0f
-            visibility = View.VISIBLE
-        }
-        detailsView?.apply {
-            alpha = 0f
-            visibility = View.VISIBLE
-        }
-
-        weatherAnimationJob = lifecycleScope.launch {
-            while (isActive) {
-                // 1. Fade in weather
-                weatherView?.run {
-                    animate()
-                        .alpha(1f)
-                        .setDuration(fadeInDur)
-                        .withEndAction { /* no-op */ }
-                        .start()
-                }
-                delay(fadeInDur)
-                // 2. Show weather for 10 seconds
-                delay(showCycleDur)
-                // 3. Cross-fade to details
-                weatherView?.run {
-                    animate()
-                        .alpha(0f)
-                        .setDuration(fadeOutDur)
-                        .start()
-                }
-                detailsView?.run {
-                    animate()
-                        .alpha(1f)
-                        .setDuration(fadeInDur)
-                        .start()
-                }
-                delay(maxOf(fadeOutDur, fadeInDur))
-                // 4. Show details for 10 seconds
-                delay(showCycleDur)
-                // 5. Cross-fade back to weather
-                detailsView?.run {
-                    animate()
-                        .alpha(0f)
-                        .setDuration(fadeOutDur)
-                        .start()
-                }
-                weatherView?.run {
-                    animate()
-                        .alpha(1f)
-                        .setDuration(fadeInDur)
-                        .start()
-                }
-                delay(maxOf(fadeOutDur, fadeInDur))
-            }
-        }
-    }
-
-    fun cancelWeatherAnimations() {
-        weatherAnimationJob?.cancel()
-        weatherAnimationJob = null
-
-        // Immediately reset views to default state
-        findViewById<ViewGroup?>(R.id.weather)?.apply {
-            animate().cancel()
-            alpha = 1f
-        }
-        findViewById<ViewGroup?>(R.id.details)?.apply {
-            animate().cancel()
-            alpha = 0f
-        }
-        findViewById<TextView>(R.id.curLocation)?.apply {
-            animate().cancel()
-            alpha = 0f
-        }
     }
 
     private fun setShyMode(shy: Boolean, changeWallpaper: Boolean): Boolean {
@@ -1135,9 +701,9 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         }
         mLaunchAnimation.init(
             LauncherDismissAnimator(
-                mListView,
+                mListView!!,
                 mFadeDismissAndSummonAnimations,
-                homeAdapter!!.rowHeaders
+                homeAdapter!!.rowHeaders as Array<View>
             ), mMoveTaskToBack, 0.toByte()
         )
         mLaunchAnimation.start()
@@ -1181,7 +747,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                     if (!mLaunchAnimation.isScheduled) {
                         resetLauncherState(false)
                         mLaunchAnimation.init(
-                            MassSlideAnimator.Builder(mListView)
+                            MassSlideAnimator.Builder(mListView!!)
                                 .setDirection(MassSlideAnimator.Direction.SLIDE_IN)
                                 .setFade(mFadeDismissAndSummonAnimations)
                                 .build(), mRefreshHomeAdapter, 32.toByte()
@@ -1194,7 +760,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         } else if (!mLaunchAnimation.isInitialized && !mLaunchAnimation.isScheduled) {
             resetLauncherState(false)
             mLaunchAnimation.init(
-                MassSlideAnimator.Builder(mListView)
+                MassSlideAnimator.Builder(mListView!!)
                     .setDirection(MassSlideAnimator.Direction.SLIDE_IN)
                     .setFade(mFadeDismissAndSummonAnimations)
                     .build(), mRefreshHomeAdapter, 32.toByte()
@@ -1310,14 +876,14 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             if (!mLaunchAnimation.isInitialized) {
                 mLaunchAnimation.init(
                     LauncherReturnAnimator(
-                        mListView,
+                        mListView!!,
                         mLaunchAnimation.lastKnownEpicenter,
-                        homeAdapter!!.rowHeaders,
+                        homeAdapter!!.rowHeaders as Array<View>,
                         mHomeScreenView
                     ), mRefreshHomeAdapter, 32.toByte()
                 )
             }
-            mLaunchAnimation.schedule<LauncherReturnAnimator>()
+            mLaunchAnimation.schedule()
         }
         mStartingEditMode = false
     }
@@ -1401,7 +967,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         super.onPause()
         mResetAfterIdleEnabled = false
         mLaunchAnimation.cancel()
-        cancelWeatherAnimations()
         mHandler.removeMessages(1)
         mHandler.removeMessages(6)
         mHandler.removeMessages(7)
@@ -1418,7 +983,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             )
             mEditModeAnimation.start()
         }
-        mPauseAnimation.init(LauncherPauseAnimator(mListView), null, 0.toByte())
+        mPauseAnimation.init(LauncherPauseAnimator(mListView!!), null, 0.toByte())
         mPauseAnimation.start()
         if (homeAdapter != null && homeAdapter!!.isUiVisible) {
             homeAdapter?.onUiInvisible()
@@ -1645,8 +1210,6 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                         }
                         icon?.breath()
                     }
-                    // weather widget update
-                    initializeWeather()
                     return
                 }
                 return
@@ -1752,22 +1315,22 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
             }
             val animation: ForwardingAnimatorSet = if (view is NotificationCardView) {
                 NotificationLaunchAnimator(
-                    mListView,
+                    mListView!!,
                     view,
                     mLaunchAnimation.lastKnownEpicenter,
                     findViewById<View>(R.id.click_circle_layer) as ImageView,
                     color,
-                    homeAdapter!!.rowHeaders,
+                    homeAdapter!!.rowHeaders as Array<View>,
                     mHomeScreenView
                 )
             } else {
                 LauncherLaunchAnimator(
-                    mListView,
+                    mListView!!,
                     view,
                     mLaunchAnimation.lastKnownEpicenter,
                     findViewById<View>(R.id.click_circle_layer) as ImageView,
                     color,
-                    homeAdapter!!.rowHeaders,
+                    homeAdapter!!.rowHeaders as Array<View>,
                     mHomeScreenView
                 )
             }
@@ -1783,23 +1346,23 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         get() = mEditModeAnimation.isPrimed || mEditModeAnimation.isRunning
 
     fun includeInLaunchAnimation(target: View?) {
-        mLaunchAnimation.include(target)
+        mLaunchAnimation.include(target!!)
     }
 
     fun includeInEditAnimation(target: View?) {
-        mEditModeAnimation.include(target)
+        mEditModeAnimation.include(target!!)
     }
 
     fun excludeFromLaunchAnimation(target: View?) {
-        mLaunchAnimation.exclude(target)
+        mLaunchAnimation.exclude(target!!)
     }
 
     fun excludeFromEditAnimation(target: View?) {
-        mEditModeAnimation.exclude(target)
+        mEditModeAnimation.exclude(target!!)
     }
 
     fun setOnLaunchAnimationFinishedListener(l: OnAnimationFinishedListener?) {
-        mLaunchAnimation.setOnAnimationFinishedListener(l)
+        mLaunchAnimation.setOnAnimationFinishedListener({l})
     }
 
     private fun primeAnimationAfterLayout() {

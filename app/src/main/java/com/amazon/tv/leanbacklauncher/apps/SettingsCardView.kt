@@ -28,9 +28,9 @@ class SettingsCardView @JvmOverloads constructor(context: Context, attrs: Attrib
         mIcon = findViewById(R.id.icon)
         mFocusAnimator = ViewFocusAnimator(this)
         mDimmer = ViewDimmer(this)
-        mDimmer?.addDimTarget(mIcon)
-        mDimmer?.addDimTarget(mCircle)
-        mDimmer?.setDimLevelImmediate()
+        mDimmer?.addDimTarget(mIcon!!)
+        mDimmer?.addDimTarget(mCircle!!)
+        mDimmer?.setDimLevelImmediate(DimState.INACTIVE)
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: Rect?) {
@@ -50,7 +50,7 @@ class SettingsCardView @JvmOverloads constructor(context: Context, attrs: Attrib
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         clearAnimation()
-        mDimmer?.setDimLevelImmediate()
+        mDimmer?.setDimLevelImmediate(DimState.INACTIVE)
         mFocusAnimator?.setFocusImmediate(hasFocus())
         setAnimationsEnabled(true)
     }

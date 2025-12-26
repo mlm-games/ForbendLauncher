@@ -1,8 +1,8 @@
-package com.amazon.tv.leanbacklauncher.util;
+package com.amazon.tv.leanbacklauncher.util
 
-import android.net.Uri;
+import android.net.Uri
 
-public class SearchWidgetInfoContract {
-    public static final Uri ICON_CONTENT_URI = Uri.parse("content://com.google.android.katniss.search.WidgetInfoProvider/state");
-    public static final Uri SUGGESTIONS_CONTENT_URI = Uri.parse("content://com.google.android.katniss.search.WidgetInfoProvider/suggestions");
+object SearchWidgetInfoContract {
+    val ICON_CONTENT_URI: Uri = Uri.parse("content://com.google.android.katniss.search.WidgetInfoProvider/state")
+    val SUGGESTIONS_CONTENT_URI: Uri = Uri.parse("content://com.google.android.katniss.search.WidgetInfoProvider/suggestions")
 }

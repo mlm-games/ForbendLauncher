@@ -17,7 +17,7 @@ import com.amazon.tv.leanbacklauncher.util.Util.startActivity
 import com.amazon.tv.tvrecommendations.TvRecommendation
 
 class PartnerAdapter(context: Context, private val mListener: BlacklistListener?) :
-    NotificationsServiceAdapter<PartnerBannerViewHolder?>(context, 15000, 60000) {
+    NotificationsServiceAdapter<PartnerBannerViewHolder>(context, 15000, 60000) {
     class PartnerBannerViewHolder(v: View?) : AppBannerViewHolder(v!!, null) {
         private var mIntent: PendingIntent? = null
         private val TAG by lazy { if (BuildConfig.DEBUG) ("[*]" + javaClass.simpleName).take(21) else javaClass.simpleName }
@@ -74,7 +74,7 @@ class PartnerAdapter(context: Context, private val mListener: BlacklistListener?
 
     override fun onNewRecommendation(rec: TvRecommendation) {
         val pkgName = rec.replacedPackageName
-        if (pkgName.isNotEmpty() && mListener != null) {
+        if (pkgName?.isNotEmpty() == true && mListener != null) {
             mListener.onPackageBlacklisted(pkgName)
         }
     }

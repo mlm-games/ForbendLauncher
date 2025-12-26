@@ -1,56 +1,43 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-public abstract class RankerParameters {
-    static final float BONUS_FADE_PERIOD_DAYS_DEFAULT = 0.5f;
-    static final float GROUP_STARTER_SCORE_DEFAULT = 0.001f;
-    static final float INSTALL_BONUS_DEFAULT = 0.3f;
-    static final float OUT_OF_BOX_BONUS_DEFAULT = 0.005f;
-    static final float SPREAD_FACTOR_DEFAULT = 1.0f;
-    private float mBonusFadePeriodDays;
-    private float mGroupStarterScore;
-    private float mInstallBonus;
-    private Object mLastVersionToken = null;
-    private float mOutOfBoxBonus;
-    private float mSpreadFactor;
+abstract class RankerParameters {
+    private var lastVersionToken: Any? = null
+    private var spreadFactor = SPREAD_FACTOR_DEFAULT
+    private var groupStarterScore = GROUP_STARTER_SCORE_DEFAULT
+    private var installBonus = INSTALL_BONUS_DEFAULT
+    private var outOfBoxBonus = OUT_OF_BOX_BONUS_DEFAULT
+    private var bonusFadePeriodDays = BONUS_FADE_PERIOD_DAYS_DEFAULT
 
-    protected abstract float getFloat(String str, float f);
+    protected abstract fun getFloat(key: String, default: Float): Float
+    protected abstract fun getVersionToken(): Any
 
-    protected abstract Object getVersionToken();
-
-    private void checkUpdateGservicesFlags() {
-        Object versionToken = getVersionToken();
-        if (!versionToken.equals(this.mLastVersionToken)) {
-            this.mLastVersionToken = versionToken;
-            this.mSpreadFactor = getFloat("rec_ranker_spread_factor", SPREAD_FACTOR_DEFAULT);
-            this.mGroupStarterScore = getFloat("rec_ranker_group_starter_score", GROUP_STARTER_SCORE_DEFAULT);
-            this.mInstallBonus = getFloat("rec_ranker_install_bonus", INSTALL_BONUS_DEFAULT);
-            this.mOutOfBoxBonus = getFloat("rec_ranker_out_of_box_bonus", OUT_OF_BOX_BONUS_DEFAULT);
-            this.mBonusFadePeriodDays = getFloat("bonus_fade_period_days", BONUS_FADE_PERIOD_DAYS_DEFAULT);
+    private fun checkUpdateFlags() {
+        val versionToken = getVersionToken()
+        if (versionToken != lastVersionToken) {
+            lastVersionToken = versionToken
+            spreadFactor = getFloat("rec_ranker_spread_factor", SPREAD_FACTOR_DEFAULT)
+            groupStarterScore = getFloat("rec_ranker_group_starter_score", GROUP_STARTER_SCORE_DEFAULT)
+            installBonus = getFloat("rec_ranker_install_bonus", INSTALL_BONUS_DEFAULT)
+            outOfBoxBonus = getFloat("rec_ranker_out_of_box_bonus", OUT_OF_BOX_BONUS_DEFAULT)
+            bonusFadePeriodDays = getFloat("bonus_fade_period_days", BONUS_FADE_PERIOD_DAYS_DEFAULT)
         }
     }
 
-    public final float getOutOfBoxBonus() {
-        checkUpdateGservicesFlags();
-        return this.mOutOfBoxBonus;
-    }
+    fun getOutOfBoxBonus() = checkUpdateFlags().let { outOfBoxBonus }
+    fun getGroupStarterScore() = checkUpdateFlags().let { groupStarterScore }
+    fun getInstallBonus() = checkUpdateFlags().let { installBonus }
+    fun getSpreadFactor() = checkUpdateFlags().let { spreadFactor }
+    fun getBonusFadePeriodDays() = checkUpdateFlags().let { bonusFadePeriodDays }
 
-    public final float getGroupStarterScore() {
-        checkUpdateGservicesFlags();
-        return this.mGroupStarterScore;
+    companion object {
+        const val BONUS_FADE_PERIOD_DAYS_DEFAULT = 0.5f
+        const val GROUP_STARTER_SCORE_DEFAULT = 0.001f
+        const val INSTALL_BONUS_DEFAULT = 0.3f
+        const val OUT_OF_BOX_BONUS_DEFAULT = 0.005f
+        const val SPREAD_FACTOR_DEFAULT = 1.0f
     }
+}
 
-    public final float getInstallBonus() {
-        checkUpdateGservicesFlags();
-        return this.mInstallBonus;
-    }
-
-    public final float getSpreadFactor() {
-        checkUpdateGservicesFlags();
-        return this.mSpreadFactor;
-    }
-
-    public final float getBonusFadePeriodDays() {
-        checkUpdateGservicesFlags();
-        return this.mBonusFadePeriodDays;
-    }
+fun interface RankerParametersFactory {
+    fun create(context: android.content.Context): RankerParameters
 }

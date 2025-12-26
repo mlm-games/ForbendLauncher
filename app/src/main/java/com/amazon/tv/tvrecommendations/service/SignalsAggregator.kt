@@ -1,29 +1,23 @@
-package com.amazon.tv.tvrecommendations.service;
+package com.amazon.tv.tvrecommendations.service
 
-import java.util.Date;
+import java.util.Date
 
-class SignalsAggregator implements Aggregator<Signals> {
-    private SumAggregator<Integer> mClicks = new SumAggregator();
-    private SumAggregator<Integer> mImpressions = new SumAggregator();
+class SignalsAggregator : Aggregator<Signals> {
+    private var totalClicks = 0
+    private var totalImpressions = 0
 
-    SignalsAggregator() {
+    override fun reset() {
+        totalClicks = 0
+        totalImpressions = 0
     }
 
-    public void add(Date date, Signals value) {
-        this.mClicks.add(date, Integer.valueOf(value.mClicks));
-        this.mImpressions.add(date, Integer.valueOf(value.mImpressions));
+    override fun add(date: Date, value: Signals) {
+        totalClicks += value.mClicks
+        totalImpressions += value.mImpressions
     }
 
-    public double getAggregatedScore() {
-        double impressions = this.mImpressions.getAggregatedScore();
-        if (impressions > 0.0d) {
-            return this.mClicks.getAggregatedScore() / impressions;
-        }
-        return 0.0d;
-    }
-
-    public void reset() {
-        this.mClicks.reset();
-        this.mImpressions.reset();
+    override fun getAggregatedScore(): Double {
+        if (totalImpressions == 0) return 0.0
+        return totalClicks.toDouble() / totalImpressions
     }
 }

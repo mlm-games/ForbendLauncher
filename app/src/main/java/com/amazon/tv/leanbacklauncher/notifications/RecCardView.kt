@@ -24,7 +24,7 @@ class RecCardView internal constructor(context: Context?, private val mResourceC
         get() = if (mRecommendation != null) mRecommendation!!.height else 0
 
     public override fun hasProgress(): Boolean {
-        return mRecommendation != null && mRecommendation!!.hasProgress()
+        return mRecommendation != null && mRecommendation!!.hasProgress
     }
 
     val progress: Int
@@ -58,7 +58,7 @@ class RecCardView internal constructor(context: Context?, private val mResourceC
     override fun bindBadge() {
         try {
             // TODO
-            bindBadge(mResourceCache!!.getDrawable(mRecommendation!!.packageName, mRecommendation!!.badgeIcon))
+            bindBadge(mResourceCache!!.getDrawable(mRecommendation!!.packageName!!, mRecommendation!!.badgeIcon))
             return
         } catch (e: Exception) {
             e.printStackTrace()

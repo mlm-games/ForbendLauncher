@@ -1,92 +1,105 @@
-package com.amazon.tv.leanbacklauncher.util;
+package com.amazon.tv.leanbacklauncher.util
 
-import android.content.AsyncTaskLoader;
-import android.content.Context;
-import android.database.ContentObserver;
-import android.database.Cursor;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.Handler;
-import android.util.Log;
+import android.content.AsyncTaskLoader
+import android.content.Context
+import android.database.ContentObserver
+import android.graphics.drawable.Drawable
+import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 
-public class TvSearchIconLoader extends AsyncTaskLoader<Drawable> {
-    private ContentObserver mContentObserver = null;
-    private Drawable mTvSearchIcon = null;
+class TvSearchIconLoader(context: Context) : AsyncTaskLoader<Drawable?>(context) {
+    private var contentObserver: ContentObserver? = null
+    private var tvSearchIcon: Drawable? = null
 
-    public TvSearchIconLoader(Context context) {
-        super(context);
-    }
+    override fun onStartLoading() {
+        tvSearchIcon?.let { deliverResult(it) }
 
-    protected void onStartLoading() {
-        if (this.mTvSearchIcon != null) {
-            deliverResult(this.mTvSearchIcon);
-        }
-        if (this.mContentObserver == null) {
-            this.mContentObserver = new ContentObserver(new Handler()) {
-                public void onChange(boolean selfChange) {
-                    TvSearchIconLoader.this.onContentChanged();
-                }
-
-                public void onChange(boolean selfChange, Uri uri) {
-                    onChange(selfChange);
-                }
-            };
+        if (contentObserver == null) {
+            contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+                override fun onChange(selfChange: Boolean) = onContentChanged()
+                override fun onChange(selfChange: Boolean, uri: Uri?) = onChange(selfChange)
+            }
             try {
-                getContext().getContentResolver().registerContentObserver(SearchWidgetInfoContract.ICON_CONTENT_URI, true, this.mContentObserver);
-            } catch (SecurityException e) {
-                Log.e("TvSearchIconLdr", "Exception in onStartLoading() on registering content observer", e);
-                this.mContentObserver = null;
+                context.contentResolver.registerContentObserver(
+                    SearchWidgetInfoContract.ICON_CONTENT_URI, true, contentObserver!!
+                )
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Exception in onStartLoading() on registering content observer", e)
+                contentObserver = null
             }
         }
-        if (takeContentChanged() || this.mTvSearchIcon == null) {
-            forceLoad();
+
+        if (takeContentChanged() || tvSearchIcon == null) {
+            forceLoad()
         }
     }
 
-    protected void onReset() {
-        onStopLoading();
-        this.mTvSearchIcon = null;
-        if (this.mContentObserver != null) {
-            getContext().getContentResolver().unregisterContentObserver(this.mContentObserver);
-            this.mContentObserver = null;
+    override fun onReset() {
+        onStopLoading()
+        tvSearchIcon = null
+        contentObserver?.let {
+            context.contentResolver.unregisterContentObserver(it)
+            contentObserver = null
         }
     }
 
-    protected void onStopLoading() {
-        cancelLoad();
+    override fun loadInBackground(): Drawable? {
+        tvSearchIcon = null
+        // TODO: Implement actual loading if needed
+        return tvSearchIcon
     }
 
-    // todo this is a mess
-    public Drawable loadInBackground() {
-        Cursor data;
-        this.mTvSearchIcon = null;
+    companion object {
+        private const val TAG = "TvSearchIconLdr"
+    }
+}
 
-// FIXME
-//        try {
-//            data = getContext().getContentResolver().query(SearchWidgetInfoContract.ICON_CONTENT_URI, null, null, null, null);
-//
-//            Resources resources = null;
-//
-//            if (data != null) {
-//                if (data.moveToFirst()) {
-//                    String iconResource = data.getString(0);
-//                    if (!TextUtils.isEmpty(iconResource)) {
-//                        try {
-//                            resources = getContext().getPackageManager().getResourcesForApplication("com.google.android.katniss");
-//                            this.mTvSearchIcon = resources.getDrawable(resources.getIdentifier(iconResource, "drawable", "com.google.android.katniss"), null);
-//                        } catch (NameNotFoundException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            }
-//            if (data != null) {
-//                data.close();
-//            }
-//
-//        } catch (Exception e) {
-//            Log.e("TvSearchIconLoader", "Exception in loadInBackground()", e);
-//        }
-        return this.mTvSearchIcon;
+class TvSearchSuggestionsLoader(context: Context) : AsyncTaskLoader<Array<String>?>(context) {
+    private var contentObserver: ContentObserver? = null
+    private var searchSuggestions: Array<String>? = null
+
+    override fun onStartLoading() {
+        searchSuggestions?.let { deliverResult(it) }
+
+        if (contentObserver == null) {
+            contentObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
+                override fun onChange(selfChange: Boolean) = onContentChanged()
+                override fun onChange(selfChange: Boolean, uri: Uri?) = onChange(selfChange)
+            }
+            try {
+                context.contentResolver.registerContentObserver(
+                    SearchWidgetInfoContract.SUGGESTIONS_CONTENT_URI, true, contentObserver!!
+                )
+            } catch (e: SecurityException) {
+                Log.e(TAG, "Exception in onStartLoading() on registering content observer", e)
+                contentObserver = null
+            }
+        }
+
+        if (takeContentChanged() || searchSuggestions == null) {
+            forceLoad()
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onReset() {
+        onStopLoading()
+        searchSuggestions = null
+        contentObserver?.let {
+            context.contentResolver.unregisterContentObserver(it)
+            contentObserver = null
+        }
+    }
+
+    override fun loadInBackground(): Array<String>? {
+        searchSuggestions = null
+        // TODO: Implement actual loading if needed
+        return searchSuggestions
+    }
+
+    companion object {
+        private const val TAG = "TvSearchSuggestionsLdr"
     }
 }

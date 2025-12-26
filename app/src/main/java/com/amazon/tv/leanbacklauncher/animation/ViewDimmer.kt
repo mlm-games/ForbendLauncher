@@ -1,300 +1,151 @@
-package com.amazon.tv.leanbacklauncher.animation;
+package com.amazon.tv.leanbacklauncher.animation
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
-import android.graphics.drawable.Drawable;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.animation.ObjectAnimator
+import android.graphics.Color
+import android.graphics.ColorFilter
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.drawable.Drawable
+import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.annotation.Keep
+import com.amazon.tv.leanbacklauncher.R
+import com.amazon.tv.leanbacklauncher.widget.PlayingIndicatorView
 
-import androidx.annotation.Keep;
+class ViewDimmer(private val targetView: View) {
 
-import com.amazon.tv.leanbacklauncher.R;
-import com.amazon.tv.leanbacklauncher.widget.PlayingIndicatorView;
+    enum class DimState { ACTIVE, INACTIVE, EDIT_MODE }
 
-import java.util.ArrayList;
-import java.util.List;
+    private val activeDimLevel = targetView.resources.getFraction(R.fraction.launcher_active_dim_level, 1, 1)
+    private val inactiveDimLevel = targetView.resources.getFraction(R.fraction.launcher_inactive_dim_level, 1, 1)
+    private val editModeDimLevel = targetView.resources.getFraction(R.fraction.launcher_edit_mode_dim_level, 1, 1)
 
-public class ViewDimmer {
-    private static ColorFilter[] sFilters;
-    private static ColorFilter[] sFiltersDesat;
-    private static ColorMatrix[] sMatrices;
-    private final float mActiveDimLevel;
-    private boolean mAnimationEnabled = true;
-    private ColorMatrix mConcatMatrix;
-    private List<Drawable> mDesatDrawables;
-    private List<ImageView> mDesatImageViews;
-    private final ObjectAnimator mDimAnimation;
-    private float mDimLevel;
-    private DimState mDimState;
-    private List<Drawable> mDrawables;
-    private final float mEditModeDimLevel;
-    private List<ImageView> mImageViews;
-    private final float mInactiveDimLevel;
-    private List<Integer> mOriginalTextColors;
-    private List<PlayingIndicatorView> mPlayingIndicatorViews;
-    private final View mTargetView;
-    private List<TextView> mTextViews;
+    private var animationEnabled = true
+    private var concatMatrix: ColorMatrix? = null
+    private var dimState: DimState? = null
 
-    public enum DimState {
-        ACTIVE,
-        INACTIVE,
-        EDIT_MODE
+    private val imageViews = mutableListOf<ImageView>()
+    private val desatImageViews = mutableListOf<ImageView>()
+    private val drawables = mutableListOf<Drawable>()
+    private val desatDrawables = mutableListOf<Drawable>()
+    private val textViews = mutableListOf<Pair<TextView, Int>>()
+    private val playingIndicatorViews = mutableListOf<PlayingIndicatorView>()
+
+    private val dimAnimation = ObjectAnimator.ofFloat(this, "dimLevel", inactiveDimLevel).apply {
+        duration = targetView.resources.getInteger(R.integer.item_dim_anim_duration).toLong()
+        addListener(
+            onStart = { targetView.setHasTransientState(true) },
+            onEnd = { targetView.setHasTransientState(false) }
+        )
     }
 
-    public ViewDimmer(View view) {
-        this.mTargetView = view;
-        if (sFilters == null || sFiltersDesat == null) {
-            sFilters = new ColorFilter[256];
-            sFiltersDesat = new ColorFilter[256];
-            sMatrices = new ColorMatrix[256];
-            ColorMatrix desat = new ColorMatrix();
-            desat.setSaturation(0.0f);
-            for (int i = 0; i <= 255; i++) {
-                float dimVal = 1.0f - (((float) i) / 255.0f);
-                ColorMatrix dimMatrix = new ColorMatrix();
-                dimMatrix.setScale(dimVal, dimVal, dimVal, 1.0f);
-                sMatrices[i] = dimMatrix;
-                sFilters[i] = new ColorMatrixColorFilter(dimMatrix);
-                ColorMatrix dimDesatMatrix = new ColorMatrix();
-                dimDesatMatrix.setScale(dimVal, dimVal, dimVal, 1.0f);
-                dimDesatMatrix.postConcat(desat);
-                sFiltersDesat[i] = new ColorMatrixColorFilter(dimDesatMatrix);
+    @set:Keep
+    var dimLevel: Float = 0f
+        private set(level) {
+            field = level
+            val filterIndex = (255 * level).toInt().coerceIn(0, 255)
+            
+            val filter = when {
+                level in 0f..1f -> concatMatrix?.let { 
+                    ColorMatrixColorFilter(ColorMatrix().apply { setConcat(sMatrices[filterIndex], it) })
+                } ?: sFilters[filterIndex]
+                concatMatrix != null -> ColorMatrixColorFilter(concatMatrix!!)
+                else -> null
+            }
+            
+            val desatFilter = if (level in 0f..1f) sFiltersDesat[filterIndex] else null
+
+            imageViews.forEach { it.colorFilter = filter }
+            desatImageViews.forEach { it.colorFilter = desatFilter }
+            drawables.forEach { it.colorFilter = filter }
+            desatDrawables.forEach { it.mutate().colorFilter = desatFilter }
+            playingIndicatorViews.forEach { it.setColorFilter(filter) }
+            textViews.forEach { (tv, origColor) -> tv.setTextColor(getDimmedColor(origColor, level)) }
+        }
+
+    fun setAnimationEnabled(enabled: Boolean) {
+        animationEnabled = enabled
+        if (!enabled && dimAnimation.isStarted) dimAnimation.end()
+    }
+
+    fun setConcatMatrix(matrix: ColorMatrix?) { concatMatrix = matrix }
+
+    fun convertToDimLevel(state: DimState) = when (state) {
+        DimState.ACTIVE -> activeDimLevel
+        DimState.INACTIVE -> inactiveDimLevel
+        DimState.EDIT_MODE -> editModeDimLevel
+    }
+
+    fun animateDim(state: DimState) {
+        if (!animationEnabled) return setDimLevelImmediate(state)
+        
+        dimAnimation.takeIf { it.isStarted }?.cancel()
+        val target = convertToDimLevel(state)
+        if (dimLevel != target) {
+            dimAnimation.setFloatValues(dimLevel, target)
+            dimAnimation.start()
+        }
+    }
+
+    fun setDimLevelImmediate(state: DimState) {
+        dimAnimation.takeIf { it.isStarted }?.cancel()
+        dimLevel = convertToDimLevel(state)
+    }
+
+    fun setDimState(state: DimState, immediate: Boolean) {
+        if (immediate) setDimLevelImmediate(state) else animateDim(state)
+        dimState = state
+    }
+
+    // Add targets
+    fun addDimTarget(view: ImageView) { imageViews += view }
+    fun addDesatDimTarget(view: ImageView) { desatImageViews += view }
+    fun addDimTarget(drawable: Drawable) { drawables += drawable }
+    fun addDesatDimTarget(drawable: Drawable) { desatDrawables += drawable }
+    fun addDimTarget(view: PlayingIndicatorView) { playingIndicatorViews += view }
+    fun addDimTarget(view: TextView) { textViews += view to view.currentTextColor }
+
+    fun removeDimTarget(drawable: Drawable) { drawables -= drawable }
+    fun removeDesatDimTarget(drawable: Drawable) { desatDrawables -= drawable }
+
+    fun setTargetTextColor(view: TextView, newColor: Int) {
+        val index = textViews.indexOfFirst { it.first == view }
+        if (index >= 0) {
+            textViews[index] = view to newColor
+            view.setTextColor(getDimmedColor(newColor, dimLevel))
+        }
+    }
+
+    companion object {
+        private val sFilters = arrayOfNulls<ColorFilter>(256)
+        private val sFiltersDesat = arrayOfNulls<ColorFilter>(256)
+        private val sMatrices = arrayOfNulls<ColorMatrix>(256)
+
+        init {
+            val desat = ColorMatrix().apply { setSaturation(0f) }
+            repeat(256) { i ->
+                val dimVal = 1f - i / 255f
+                sMatrices[i] = ColorMatrix().apply { setScale(dimVal, dimVal, dimVal, 1f) }
+                sFilters[i] = ColorMatrixColorFilter(sMatrices[i]!!)
+                sFiltersDesat[i] = ColorMatrixColorFilter(ColorMatrix().apply {
+                    setScale(dimVal, dimVal, dimVal, 1f)
+                    postConcat(desat)
+                })
             }
         }
-        this.mActiveDimLevel = this.mTargetView.getResources().getFraction(R.fraction.launcher_active_dim_level, 1, 1);
-        this.mInactiveDimLevel = this.mTargetView.getResources().getFraction(R.fraction.launcher_inactive_dim_level, 1, 1);
-        this.mEditModeDimLevel = this.mTargetView.getResources().getFraction(R.fraction.launcher_edit_mode_dim_level, 1, 1);
-        int dimAnimDuration = this.mTargetView.getResources().getInteger(R.integer.item_dim_anim_duration);
-        this.mDimAnimation = ObjectAnimator.ofFloat(this, "dimLevel", this.mInactiveDimLevel);
-        this.mDimAnimation.setDuration(dimAnimDuration);
-        this.mDimAnimation.addListener(new AnimatorListenerAdapter() {
-            public void onAnimationStart(Animator animation) {
-                ViewDimmer.this.mTargetView.setHasTransientState(true);
-            }
 
-            public void onAnimationEnd(Animator animation) {
-                ViewDimmer.this.mTargetView.setHasTransientState(false);
-            }
-        });
-    }
+        fun getDimmedColor(color: Int, level: Float): Int {
+            val factor = 1f - level
+            return Color.argb(
+                Color.alpha(color),
+                (Color.red(color) * factor).toInt(),
+                (Color.green(color) * factor).toInt(),
+                (Color.blue(color) * factor).toInt()
+            )
+        }
 
-    static int getDimmedColor(int color, float level) {
-        float factor = 1.0f - level;
-        return Color.argb(Color.alpha(color), (int) (((float) Color.red(color)) * factor), (int) (((float) Color.green(color)) * factor), (int) (((float) Color.blue(color)) * factor));
-    }
-
-    public void setAnimationEnabled(boolean enabled) {
-        this.mAnimationEnabled = enabled;
-        if (!enabled && this.mDimAnimation.isStarted()) {
-            this.mDimAnimation.end();
-        }
-    }
-
-    public void setConcatMatrix(ColorMatrix matrix) {
-        this.mConcatMatrix = matrix;
-        //setDimLevel(this.mDimLevel); // FIXME
-    }
-
-    @Keep
-    private void setDimLevel(float level) {
-        int size;
-        int i;
-        this.mDimLevel = level;
-        ColorFilter filter = null;
-        ColorFilter desatFilter = null;
-        if (!(this.mImageViews == null && this.mDrawables == null) && this.mDimLevel > 0.0f && this.mDimLevel <= 1.0f) {
-            int filterIndex = (int) (255.0f * level);
-            if (this.mConcatMatrix == null) {
-                filter = sFilters[filterIndex];
-            } else {
-                ColorMatrix matrix = new ColorMatrix();
-                matrix.setConcat(sMatrices[filterIndex], this.mConcatMatrix);
-                filter = new ColorMatrixColorFilter(matrix);
-            }
-        }
-        if (filter == null && this.mConcatMatrix != null) {
-            filter = new ColorMatrixColorFilter(this.mConcatMatrix);
-        }
-        if (!(this.mDesatImageViews == null && this.mDesatDrawables == null) && this.mDimLevel >= 0.0f && this.mDimLevel <= 1.0f) {
-            desatFilter = sFiltersDesat[(int) (255.0f * level)];
-        }
-        if (this.mImageViews != null) {
-            size = this.mImageViews.size();
-            for (i = 0; i < size; i++) {
-                this.mImageViews.get(i).setColorFilter(filter);
-            }
-        }
-        if (this.mDesatImageViews != null) {
-            size = this.mDesatImageViews.size();
-            for (i = 0; i < size; i++) {
-                this.mDesatImageViews.get(i).setColorFilter(desatFilter);
-            }
-        }
-        if (this.mDrawables != null) {
-            size = this.mDrawables.size();
-            for (i = 0; i < size; i++) {
-                this.mDrawables.get(i).setColorFilter(filter);
-            }
-        }
-        if (this.mTextViews != null) {
-            size = this.mTextViews.size();
-            for (i = 0; i < size; i++) {
-                this.mTextViews.get(i).setTextColor(getDimmedColor(this.mOriginalTextColors.get(i).intValue(), level));
-            }
-        }
-        if (this.mPlayingIndicatorViews != null) {
-            size = this.mPlayingIndicatorViews.size();
-            for (i = 0; i < size; i++) {
-                this.mPlayingIndicatorViews.get(i).setColorFilter(filter);
-            }
-        }
-        if (this.mDesatDrawables != null) {
-            size = this.mDesatDrawables.size();
-            for (i = 0; i < size; i++) {
-                this.mDesatDrawables.get(i).mutate();
-                this.mDesatDrawables.get(i).setColorFilter(desatFilter);
-            }
-        }
-    }
-
-    public float getDimLevel() {
-        return this.mDimLevel;
-    }
-
-    public float convertToDimLevel(DimState dimState) {
-        switch (dimState) {
-            case ACTIVE:
-                return this.mActiveDimLevel;
-            case INACTIVE:
-                return this.mInactiveDimLevel;
-            case EDIT_MODE:
-                return this.mEditModeDimLevel;
-            default:
-                throw new IllegalArgumentException("Illegal dimState: " + dimState);
-        }
-    }
-
-    public static DimState activatedToDimState(boolean activated) {
-        if (activated) {
-            return DimState.ACTIVE;
-        }
-        return DimState.INACTIVE;
-    }
-
-    public static boolean dimStateToActivated(DimState dimState) {
-        return !dimState.equals(DimState.INACTIVE);
-    }
-
-    public void animateDim(DimState dimState) {
-        if (this.mAnimationEnabled) {
-            if (this.mDimAnimation.isStarted()) {
-                this.mDimAnimation.cancel();
-            }
-            if (getDimLevel() != convertToDimLevel(dimState)) {
-                this.mDimAnimation.setFloatValues(getDimLevel(), R.id.end);
-                this.mDimAnimation.start();
-                return;
-            }
-            return;
-        }
-        //setDimLevelImmediate(dimState); // FIXME
-    }
-
-    public void setDimLevelImmediate(DimState dimState) {
-        if (this.mDimAnimation.isStarted()) {
-            this.mDimAnimation.cancel();
-        }
-        //setDimLevel(convertToDimLevel(dimState)); // FIXME
-    }
-
-    public void setDimLevelImmediate() {
-        if (this.mDimState != null) {
-            //setDimLevelImmediate(this.mDimState); // FIXME
-        } else {
-            //setDimLevelImmediate(DimState.INACTIVE); // FIXME
-        }
-    }
-
-    public void setDimState(DimState dimState, boolean immediate) {
-        if (immediate) {
-            //setDimLevelImmediate(dimState); // FIXME
-        } else {
-            //animateDim(dimState); // FIXME
-        }
-        this.mDimState = dimState;
-    }
-
-    public void addDimTarget(PlayingIndicatorView view) {
-        if (this.mPlayingIndicatorViews == null) {
-            this.mPlayingIndicatorViews = new ArrayList(4);
-        }
-        this.mPlayingIndicatorViews.add(view);
-    }
-
-    public void addDimTarget(ImageView view) {
-        if (this.mImageViews == null) {
-            this.mImageViews = new ArrayList(4);
-        }
-        this.mImageViews.add(view);
-    }
-
-    public void addDesatDimTarget(ImageView view) {
-        if (this.mDesatImageViews == null) {
-            this.mDesatImageViews = new ArrayList(4);
-        }
-        this.mDesatImageViews.add(view);
-    }
-
-    public void addDesatDimTarget(Drawable drawable) {
-        if (this.mDesatDrawables == null) {
-            this.mDesatDrawables = new ArrayList(4);
-        }
-        this.mDesatDrawables.add(drawable);
-    }
-
-    public void addDimTarget(TextView view) {
-        if (this.mTextViews == null) {
-            this.mTextViews = new ArrayList(4);
-        }
-        if (this.mOriginalTextColors == null) {
-            this.mOriginalTextColors = new ArrayList(4);
-        }
-        this.mTextViews.add(view);
-        this.mOriginalTextColors.add(Integer.valueOf(view.getCurrentTextColor()));
-    }
-
-    public void setTargetTextColor(TextView view, int newColor) {
-        if (this.mTextViews != null && this.mOriginalTextColors != null) {
-            int index = this.mTextViews.indexOf(view);
-            if (index >= 0) {
-                this.mOriginalTextColors.set(index, Integer.valueOf(newColor));
-                view.setTextColor(getDimmedColor(newColor, this.mDimLevel));
-            }
-        }
-    }
-
-    public void addDimTarget(Drawable drawable) {
-        if (this.mDrawables == null) {
-            this.mDrawables = new ArrayList(4);
-        }
-        this.mDrawables.add(drawable);
-    }
-
-    public void removeDimTarget(Drawable drawable) {
-        if (this.mDrawables != null) {
-            this.mDrawables.remove(drawable);
-        }
-    }
-
-    public void removeDesatDimTarget(Drawable drawable) {
-        if (this.mDesatDrawables != null) {
-            this.mDesatDrawables.remove(drawable);
-        }
+        fun activatedToDimState(activated: Boolean) = if (activated) DimState.ACTIVE else DimState.INACTIVE
+        fun dimStateToActivated(state: DimState) = state != DimState.INACTIVE
     }
 }
