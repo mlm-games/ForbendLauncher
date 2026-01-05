@@ -165,7 +165,7 @@ object Updater {
         newVersion?.let {
             val destination = File(
                 ctx.getExternalFilesDir(null),
-                "LeanbackOnFire.apk"
+                "ForbendLauncher.apk"
             ).apply {
                 mkdirs()
                 deleteOnExit()

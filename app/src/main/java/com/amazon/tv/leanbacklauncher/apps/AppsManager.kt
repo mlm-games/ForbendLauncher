@@ -21,7 +21,7 @@ class AppsManager private constructor(private val mContext: Context) :
     private val mMarketUpdateReceiver: MarketUpdateReceiver = MarketUpdateReceiver(this)
     private val mPackageChangedReceiver: PackageChangedReceiver = PackageChangedReceiver(this)
     private var mReceiversRegisteredRefCount = 0
-    private val mRows: ArrayList<HomeScreenRow?> = ArrayList<HomeScreenRow?>()
+    private val mRows: ArrayList<HomeScreenRow?> = ArrayList()
     private var mSearchChangeListener: SearchPackageChangeListener? = null
     private var mSearchPackageName: String? = null
 

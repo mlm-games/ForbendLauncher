@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "LeanbackOnFire"
+rootProject.name = "ForbendLauncher"
 include(":app")

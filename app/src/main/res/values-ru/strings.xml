@@ -27,7 +27,7 @@
     <string name="app_info_settings">Открыть панель управления</string>
     <string name="app_info_unhide_app">Показать на главном экране</string>
     <string name="app_label">Главный экран</string>
-    <string name="app_name">LeanbackOnFire</string>
+    <string name="app_name">ForbendLauncher</string>
     <string name="app_releases">Все версии доступны на</string>
     <string name="apps_order_pref_label">Автоматически сортировать по времени последнего использования</string>
     <string name="banners_corners_radius">Радиус скругления углов (px)</string>

@@ -152,7 +152,7 @@ class NotificationListenerMonitor : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val channelId = NotificationsServiceV4::class.qualifiedName.toString()
-        val channelName = "LeanbackOnFire"
+        val channelName = "ForbendLauncher"
         val notificationId = 1111
         val requestCode = 0
 
