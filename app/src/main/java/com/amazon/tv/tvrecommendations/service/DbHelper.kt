@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.text.TextUtils
 import com.amazon.tv.leanbacklauncher.R
 import kotlinx.coroutines.*
 import java.io.File

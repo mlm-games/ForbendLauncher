@@ -2,6 +2,8 @@ package com.amazon.tv.tvrecommendations.service
 
 import android.util.SparseArray
 import java.util.Date
+import androidx.core.util.isNotEmpty
+import androidx.core.util.isEmpty
 
 class ActiveDayBuffer(private val length: Int) {
     private val buffer = SparseArray<Signals>(length + 1)
@@ -23,13 +25,13 @@ class ActiveDayBuffer(private val length: Int) {
         if (index in 0 until buffer.size()) buffer.keyAt(index) else -1
 
     fun size() = length
-    fun hasData() = buffer.size() > 0
+    fun hasData() = buffer.isNotEmpty()
 
     fun getAggregatedScore(aggregator: Aggregator<Signals>): Double {
         if (!dirty) return cachedScore
         
         aggregator.reset()
-        if (buffer.size() == 0) {
+        if (buffer.isEmpty()) {
             cachedScore = Ranker.getGroupStarterScore()
         } else {
             repeat(buffer.size()) { i ->

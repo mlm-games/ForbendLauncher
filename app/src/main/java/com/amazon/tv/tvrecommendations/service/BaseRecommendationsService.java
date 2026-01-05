@@ -25,7 +25,7 @@ public abstract class BaseRecommendationsService extends Service {
     private RecommendationsManager mManager;
     private final Class mNotificationsServiceClass;
     private final RankerParametersFactory mRankerParametersFactory;
-    private Stub mServiceStub = new Stub() {
+    private final Stub mServiceStub = new Stub() {
         public int getApiVersion() {
             return 1;
         }
@@ -57,19 +57,19 @@ public abstract class BaseRecommendationsService extends Service {
             }
         }
 
-        public void unregisterRecommendationsClient(IRecommendationsClient client) throws RemoteException {
+        public void unregisterRecommendationsClient(IRecommendationsClient client) {
             unregisterRecommendationsClient(client, false);
         }
 
-        public void unregisterPartnerRowClient(IRecommendationsClient client) throws RemoteException {
+        public void unregisterPartnerRowClient(IRecommendationsClient client) {
             unregisterRecommendationsClient(client, true);
         }
 
-        private synchronized void unregisterRecommendationsClient(IRecommendationsClient client, boolean isPartnerClient) throws RemoteException {
+        private synchronized void unregisterRecommendationsClient(IRecommendationsClient client, boolean isPartnerClient) {
             BaseRecommendationsService.this.mManager.unregisterNotificationsClient(client, isPartnerClient);
         }
 
-        public void dismissRecommendation(String key) throws RemoteException {
+        public void dismissRecommendation(String key) {
             BaseRecommendationsService.this.mManager.cancelRecommendation(key);
         }
 
@@ -91,12 +91,12 @@ public abstract class BaseRecommendationsService extends Service {
 
         public String[] getRecommendationsPackages() {
             List<String> list = BaseRecommendationsService.this.mManager.getRecommendationsPackages();
-            return list.toArray(new String[list.size()]);
+            return list.toArray(new String[0]);
         }
 
         public String[] getBlacklistedPackages() {
             List<String> list = BaseRecommendationsService.this.mManager.getBlacklistedPackages();
-            return list.toArray(new String[list.size()]);
+            return list.toArray(new String[0]);
         }
 
         public void setBlacklistedPackages(String[] blacklist) {
@@ -176,8 +176,8 @@ public abstract class BaseRecommendationsService extends Service {
                 break;
             }
         }
-        if (!enabled && context.getPackageManager().checkPermission("android.permission.WRITE_SECURE_SETTINGS", context.getPackageName()) != -1) {
-            if (listeners == null || listeners.length() == 0) {
+        if (!enabled && context.getPackageManager().checkPermission("android.permission.WRITE_SECURE_SETTINGS", context.getPackageName()) != PackageManager.PERMISSION_DENIED) {
+            if (listeners == null || listeners.isEmpty()) {
                 listeners = component;
             } else {
                 listeners = listeners + ":" + component;

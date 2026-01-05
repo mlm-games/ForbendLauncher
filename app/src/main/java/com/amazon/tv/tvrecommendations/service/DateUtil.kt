@@ -3,6 +3,7 @@ package com.amazon.tv.tvrecommendations.service
 import android.content.Context
 import androidx.preference.PreferenceManager
 import java.util.*
+import androidx.core.content.edit
 
 object DateUtil {
     private const val PREF_KEY = "recommendations_oob_ranking_marker"
@@ -26,7 +27,8 @@ object DateUtil {
         PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(PREF_KEY, false)
 
     fun setInitialRankingAppliedFlag(ctx: Context, applied: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(ctx).edit()
-            .putBoolean(PREF_KEY, applied).apply()
+        PreferenceManager.getDefaultSharedPreferences(ctx).edit {
+            putBoolean(PREF_KEY, applied)
+        }
     }
 }

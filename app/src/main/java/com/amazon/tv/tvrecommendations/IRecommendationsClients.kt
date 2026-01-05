@@ -193,7 +193,7 @@ interface IRecommendationsService : IInterface {
 
 // Parcel Extensions
 private fun Parcel.readRecommendation(): TvRecommendation? =
-    if (readInt() != 0) TvRecommendation.CREATOR.createFromParcel(this) else null
+    if (readInt() != 0) TvRecommendation.createFromParcel(this) else null
 
 private fun Parcel.writeRecommendation(rec: TvRecommendation?) {
     if (rec != null) { writeInt(1); rec.writeToParcel(this, 0) } else writeInt(0)
