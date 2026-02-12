@@ -39,6 +39,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import com.amazon.tv.leanbacklauncher.notifications.HomeScreenMessaging
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.res.ResourcesCompat
@@ -456,7 +457,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
                                     mNotificationsView = it.notificationRow
                                     mNotificationsView?.setListener(mNotifListener)
                                 }
-                                homeScreenMessaging.listener = { state ->
+                                homeScreenMessaging.listener = HomeScreenMessaging.ChangeListener { state ->
                                     scheduleNotificationStateUpdate(state)
                                     if (state == 0 && mDelayFirstRecommendationsVisible) {
                                         mDelayFirstRecommendationsVisible = false
