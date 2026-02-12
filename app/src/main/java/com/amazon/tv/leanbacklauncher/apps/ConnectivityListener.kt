@@ -126,6 +126,7 @@ class ConnectivityListener(private val mContext: Context, listener: Listener) {
         private val mListener: WeakReference<ConnectivityListener?> =
             WeakReference<ConnectivityListener?>(listener)
 
+        @Deprecated("Deprecated in Java")
         override fun onSignalStrengthsChanged(signalStrength: SignalStrength) {
             super.onSignalStrengthsChanged(signalStrength)
             val listener = mListener.get()

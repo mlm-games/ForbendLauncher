@@ -13,6 +13,7 @@ class TvSearchIconLoader(context: Context) : AsyncTaskLoader<Drawable?>(context)
     private var contentObserver: ContentObserver? = null
     private var tvSearchIcon: Drawable? = null
 
+    @Deprecated("Deprecated in Java")
     override fun onStartLoading() {
         tvSearchIcon?.let { deliverResult(it) }
 
@@ -36,6 +37,7 @@ class TvSearchIconLoader(context: Context) : AsyncTaskLoader<Drawable?>(context)
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onReset() {
         onStopLoading()
         tvSearchIcon = null
@@ -45,6 +47,7 @@ class TvSearchIconLoader(context: Context) : AsyncTaskLoader<Drawable?>(context)
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun loadInBackground(): Drawable? {
         tvSearchIcon = null
         // TODO: Implement actual loading if needed
@@ -60,6 +63,7 @@ class TvSearchSuggestionsLoader(context: Context) : AsyncTaskLoader<Array<String
     private var contentObserver: ContentObserver? = null
     private var searchSuggestions: Array<String>? = null
 
+    @Deprecated("Deprecated in Java")
     override fun onStartLoading() {
         searchSuggestions?.let { deliverResult(it) }
 
@@ -93,6 +97,7 @@ class TvSearchSuggestionsLoader(context: Context) : AsyncTaskLoader<Array<String
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun loadInBackground(): Array<String>? {
         searchSuggestions = null
         // TODO: Implement actual loading if needed

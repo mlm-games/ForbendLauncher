@@ -4,6 +4,7 @@
     import android.content.Context
     import android.os.Handler
     import android.os.HandlerThread
+    import android.os.Looper
     import android.os.Message
     import android.os.RemoteException
     import android.util.Log
@@ -132,7 +133,7 @@
         }
 
         private class RecommendationsHandler(adapter: NotificationsServiceAdapter<*>?) :
-            Handler() {
+            Handler(Looper.getMainLooper()) {
             private val mNotificationsServiceAdapter =
                 WeakReference(adapter)
 

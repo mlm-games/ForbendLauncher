@@ -573,6 +573,7 @@ class MainActivity : AppCompatActivity(), OnEditModeChangedListener,
         listener.onIdleStateChange(mIsIdle)
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         when {
             isInEditMode -> {

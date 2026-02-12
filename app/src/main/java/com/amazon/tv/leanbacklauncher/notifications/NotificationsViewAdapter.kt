@@ -2,6 +2,7 @@ package com.amazon.tv.leanbacklauncher.notifications
 
 import android.content.Context
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.collection.ArraySet
 import androidx.recyclerview.widget.DiffUtil
@@ -45,7 +46,7 @@ abstract class NotificationsViewAdapter<VH : RecyclerView.ViewHolder> internal c
         private val mMinUpdateTime: Long,
         private val mMaxUpdateTime: Long
     ) {
-        private val mHandler = Handler()
+        private val mHandler = Handler(Looper.getMainLooper())
         private var mIsIdle = false
         private val mStateTickRunnable = Runnable { updateTick() }
         private fun scheduleUpdateTickIfNeeded() {

@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -56,7 +57,7 @@ open class AppsAdapter(
         context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private var mItemsHaveBeenSorted = false
     protected var mLaunchPoints: ArrayList<LaunchPoint> = arrayListOf()
-    private val mNotifyHandler = Handler()
+    private val mNotifyHandler = Handler(Looper.getMainLooper())
     private val prefUtil: SharedPreferencesUtil? = instance(context)
     private val listener: OnSharedPreferenceChangeListener = this
     private var mRecyclerView: RecyclerView? = null
@@ -246,13 +247,9 @@ open class AppsAdapter(
         }
 
         init {
-            if (v != null) {
-                mBannerView = v.findViewById(R.id.app_banner)
-                mBackground =
-                    ResourcesCompat.getDrawable(v.resources, R.drawable.banner_background, null)
-            } else {
-                mBannerView = null
-            }
+            mBannerView = v.findViewById(R.id.app_banner)
+            mBackground =
+                ResourcesCompat.getDrawable(v.resources, R.drawable.banner_background, null)
         }
     }
 

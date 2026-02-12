@@ -16,6 +16,7 @@ class LegacyHomeScreenSettingsActivity : FragmentActivity() {
         }
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val count = supportFragmentManager.backStackEntryCount
         if (count == 0) {

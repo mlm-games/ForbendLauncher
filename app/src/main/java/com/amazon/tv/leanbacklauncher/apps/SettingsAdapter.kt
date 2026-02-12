@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.drawable.Drawable
 import android.os.Handler
+import android.os.Looper
 import android.os.Message
 import androidx.core.content.res.ResourcesCompat
 import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
@@ -28,7 +29,7 @@ class SettingsAdapter(context: Context?, private val mConnectivityListener: Conn
 //        }
 //    }
 
-    private class NetworkUpdateHandler(adapter: SettingsAdapter?) : Handler() {
+    private class NetworkUpdateHandler(adapter: SettingsAdapter?) : Handler(Looper.getMainLooper()) {
         private val mAdapterRef: WeakReference<SettingsAdapter?> =
             WeakReference<SettingsAdapter?>(adapter)
 

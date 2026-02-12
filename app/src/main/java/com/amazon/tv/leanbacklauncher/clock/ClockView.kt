@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.text.format.DateFormat
 import android.util.AttributeSet
@@ -66,7 +67,7 @@ class ClockView @JvmOverloads constructor(
                 }
             }
         }
-        mFormatChangeObserver = object : ContentObserver(Handler()) {
+        mFormatChangeObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean) {
                 updatePatterns()
             }
