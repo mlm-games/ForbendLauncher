@@ -1,9 +1,9 @@
-package com.amazon.tv.firetv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.os.Build
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
+import org.mlm.forbendlauncher.apps.AppCategory
 
 object AppCategorizer {
 

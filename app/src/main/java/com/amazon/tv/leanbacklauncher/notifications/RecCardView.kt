@@ -1,9 +1,9 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.amazon.tv.leanbacklauncher.PackageResourceCache
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.PackageResourceCache
+import org.mlm.forbendlauncher.TvRecommendation
 import com.bumptech.glide.request.target.SizeReadyCallback
 
 class RecCardView internal constructor(context: Context?, private val mResourceCache: PackageResourceCache?) : RecView(context!!) {

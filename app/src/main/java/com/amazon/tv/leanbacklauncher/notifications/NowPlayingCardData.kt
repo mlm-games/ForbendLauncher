@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.app.PendingIntent
 import android.graphics.Bitmap

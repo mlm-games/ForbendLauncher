@@ -1,11 +1,11 @@
-package com.amazon.tv.leanbacklauncher.inputs
+package org.mlm.forbendlauncher.inputs
 
 import android.content.Context
 import android.content.res.Resources
 import android.util.AttributeSet
 import android.util.TypedValue
 import androidx.appcompat.widget.AppCompatTextView
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 class InputsTextView : AppCompatTextView {
     private val mPaddingDefault = TypedValue()

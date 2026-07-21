@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.apps.BannerView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.apps.BannerView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="@dimen/input_banner_width"
     android:layout_height="@dimen/input_banner_height"
     android:focusable="true"
@@ -31,7 +31,7 @@
         android:contentDescription="@null"
         android:scaleType="fitCenter" />
 
-    <com.amazon.tv.leanbacklauncher.inputs.InputsTextView
+    <org.mlm.forbendlauncher.inputs.InputsTextView
         android:id="@id/input_label"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -45,4 +45,4 @@
         android:paddingBottom="@dimen/input_banner_text_bottom_padding"
         android:textColor="@color/input_banner_label_text_color_light"
         android:textSize="@dimen/input_banner_label_text_size" />
-</com.amazon.tv.leanbacklauncher.apps.BannerView>
+</org.mlm.forbendlauncher.apps.BannerView>

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.Context
 import android.graphics.Color
@@ -13,15 +13,15 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences
-import com.amazon.tv.leanbacklauncher.*
-import com.amazon.tv.leanbacklauncher.animation.AppViewFocusAnimator
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInLaunchAnimation
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.AppViewHolder
-import com.amazon.tv.leanbacklauncher.widget.EditModeManager
+import org.mlm.forbendlauncher.apps.RowPreferences
+import org.mlm.forbendlauncher.*
+import org.mlm.forbendlauncher.animation.AppViewFocusAnimator
+import org.mlm.forbendlauncher.animation.ParticipatesInLaunchAnimation
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.apps.AppsAdapter.AppViewHolder
+import org.mlm.forbendlauncher.widget.EditModeManager
 
 class BannerView @JvmOverloads constructor(
     context: Context?,

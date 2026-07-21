@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.wallpaper
+package org.mlm.forbendlauncher.wallpaper
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -10,11 +10,11 @@ import android.os.Looper
 import android.os.Message
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.trace.AppTrace
-import com.amazon.tv.leanbacklauncher.trace.AppTrace.TraceTag
-import com.amazon.tv.leanbacklauncher.util.Partner
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.trace.AppTrace
+import org.mlm.forbendlauncher.trace.AppTrace.TraceTag
+import org.mlm.forbendlauncher.util.Partner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy

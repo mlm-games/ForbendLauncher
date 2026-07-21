@@ -1,6 +1,6 @@
-package com.amazon.tv.leanbacklauncher.recommendations
+package org.mlm.forbendlauncher.recommendations
 
-import com.amazon.tv.tvrecommendations.service.BaseRecommendationsService
+import org.mlm.forbendlauncher.service.BaseRecommendationsService
 
 class RecommendationsService : BaseRecommendationsService(
     false,

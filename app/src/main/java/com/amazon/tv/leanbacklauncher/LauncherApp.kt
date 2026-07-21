@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.app.Application
 import android.content.Context
@@ -16,12 +16,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.preference.PreferenceManager
-import com.amazon.tv.leanbacklauncher.capabilities.HighEndLauncherConfiguration
-import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration
-import com.amazon.tv.leanbacklauncher.recommendations.SwitchingRecommendationsClient
-import com.amazon.tv.leanbacklauncher.util.Updater
-import com.amazon.tv.tvrecommendations.IRecommendationsService
-import com.amazon.tv.tvrecommendations.RecommendationsClient
+import org.mlm.forbendlauncher.capabilities.HighEndLauncherConfiguration
+import org.mlm.forbendlauncher.capabilities.LauncherConfiguration
+import org.mlm.forbendlauncher.recommendations.SwitchingRecommendationsClient
+import org.mlm.forbendlauncher.util.Updater
+import org.mlm.forbendlauncher.IRecommendationsService
+import org.mlm.forbendlauncher.RecommendationsClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

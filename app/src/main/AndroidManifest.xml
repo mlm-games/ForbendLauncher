@@ -47,15 +47,15 @@
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="com.amazon.tv.leanbacklauncher.recommendations.permission.RECOMMENDATIONS" />
+    <uses-permission android:name="org.mlm.forbendlauncher.recommendations.permission.RECOMMENDATIONS" />
     <uses-permission android:name="com.android.providers.tv.permission.READ_EPG_DATA" />
     <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
     <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
-    <permission android:name="com.amazon.tv.leanbacklauncher.permission.MIGRATE_RECOMMENDATIONS_DATA" />
+    <permission android:name="org.mlm.forbendlauncher.permission.MIGRATE_RECOMMENDATIONS_DATA" />
 
     <application
-        android:name="com.amazon.tv.leanbacklauncher.LauncherApp"
+        android:name="org.mlm.forbendlauncher.LauncherApp"
         android:allowBackup="true"
         android:banner="@drawable/banner_leanback"
         android:hardwareAccelerated="true"
@@ -71,11 +71,11 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <meta-data
-            android:name="com.amazon.tv.leanbacklauncher.LauncherGlideModule"
+            android:name="org.mlm.forbendlauncher.LauncherGlideModule"
             android:value="GlideModule" />
 
         <activity
-            android:name="com.amazon.tv.leanbacklauncher.MainActivity"
+            android:name="org.mlm.forbendlauncher.MainActivity"
             android:clearTaskOnLaunch="true"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation"
             android:excludeFromRecents="true"
@@ -95,20 +95,20 @@
         </activity>
 
         <activity
-            android:name="com.amazon.tv.leanbacklauncher.settings.LegacyHomeScreenSettingsActivity"
+            android:name="org.mlm.forbendlauncher.settings.LegacyHomeScreenSettingsActivity"
             android:configChanges="keyboard|keyboardHidden|navigation"
             android:enabled="@bool/full_screen_settings_enabled"
             android:excludeFromRecents="true"
             android:theme="@style/Theme.Settings.Legacy"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.amazon.tv.leanbacklauncher.SETTINGS" />
+                <action android:name="org.mlm.forbendlauncher.SETTINGS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="com.amazon.tv.leanbacklauncher.settings.SettingsActivity"
+            android:name="org.mlm.forbendlauncher.settings.SettingsActivity"
             android:enabled="@bool/side_panel_settings_enabled"
             android:excludeFromRecents="true"
             android:icon="@drawable/ic_settings_launcher"
@@ -116,7 +116,7 @@
             android:theme="@style/Theme.Settings.SidePanel"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.amazon.tv.leanbacklauncher.SETTINGS" />
+                <action android:name="org.mlm.forbendlauncher.SETTINGS" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
@@ -129,7 +129,7 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" />
 
         <service
-            android:name="com.amazon.tv.leanbacklauncher.recommendations.NotificationsServiceV4"
+            android:name="org.mlm.forbendlauncher.recommendations.NotificationsServiceV4"
             android:label="@string/notif_service_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
@@ -139,12 +139,12 @@
         </service>
 
         <service
-            android:name="com.amazon.tv.leanbacklauncher.recommendations.RecommendationsService"
+            android:name="org.mlm.forbendlauncher.recommendations.RecommendationsService"
             android:label="@string/recm_service_name" />
 
-        <service android:name="com.amazon.tv.firetv.tvrecommendations.NotificationListenerMonitor" />
+        <service android:name="org.mlm.forbendlauncher.NotificationListenerMonitor" />
 
-        <receiver android:name="com.amazon.tv.leanbacklauncher.MediaButtonBroadcastReceiver"
+        <receiver android:name="org.mlm.forbendlauncher.MediaButtonBroadcastReceiver"
             android:exported="true">
             <intent-filter android:priority="2">
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
@@ -152,7 +152,7 @@
         </receiver>
 
         <activity
-            android:name="com.amazon.tv.leanbacklauncher.DummyActivity"
+            android:name="org.mlm.forbendlauncher.DummyActivity"
             android:enabled="false"
             android:excludeFromRecents="true"
             android:label="@string/app_label"
@@ -165,18 +165,18 @@
         </activity>
 
         <activity
-            android:name="com.amazon.tv.firetv.leanbacklauncher.apps.AppInfoActivity"
+            android:name="org.mlm.forbendlauncher.apps.AppInfoActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@style/Theme.Leanback.GuidedStep" />
 
         <provider
-            android:name="com.amazon.tv.leanbacklauncher.migration.DbMigrationContentProvider"
-            android:authorities="com.amazon.tv.tvrecommendations.migration"
+            android:name="org.mlm.forbendlauncher.migration.DbMigrationContentProvider"
+            android:authorities="org.mlm.forbendlauncher.migration"
             android:exported="true"
-            android:permission="com.amazon.tv.leanbacklauncher.permission.MIGRATE_RECOMMENDATIONS_DATA" />
+            android:permission="org.mlm.forbendlauncher.permission.MIGRATE_RECOMMENDATIONS_DATA" />
 
-        <receiver android:name="com.amazon.tv.leanbacklauncher.wallpaper.WallpaperInstaller$WallpaperChangedReceiver"
+        <receiver android:name="org.mlm.forbendlauncher.wallpaper.WallpaperInstaller$WallpaperChangedReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.WALLPAPER_CHANGED" />

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.graphics.Point
 import android.graphics.Rect
@@ -7,9 +7,9 @@ import android.view.ViewAnimationUtils
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.ImageView
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.notifications.HomeScreenView
-import com.amazon.tv.leanbacklauncher.notifications.NotificationCardView
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.notifications.HomeScreenView
+import org.mlm.forbendlauncher.notifications.NotificationCardView
 import kotlin.math.ceil
 import kotlin.math.sqrt
 

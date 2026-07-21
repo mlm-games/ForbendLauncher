@@ -1,15 +1,15 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.os.Build
 import androidx.preference.PreferenceManager
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.leanbacklauncher.HomeScreenRow
-import com.amazon.tv.leanbacklauncher.apps.MarketUpdateReceiver.Companion.broadcastPermission
-import com.amazon.tv.leanbacklauncher.notifications.BlacklistListener
-import com.amazon.tv.leanbacklauncher.util.Partner
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.HomeScreenRow
+import org.mlm.forbendlauncher.apps.MarketUpdateReceiver.Companion.broadcastPermission
+import org.mlm.forbendlauncher.notifications.BlacklistListener
+import org.mlm.forbendlauncher.util.Partner
+import org.mlm.forbendlauncher.util.Util
 import java.io.PrintWriter
 import java.util.*
 

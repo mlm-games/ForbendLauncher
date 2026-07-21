@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 interface OnEditModeChangedListener {
     fun onEditModeChanged(z: Boolean)

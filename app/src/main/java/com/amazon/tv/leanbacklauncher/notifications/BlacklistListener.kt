@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 interface BlacklistListener {
     fun onPackageBlacklisted(str: String?)

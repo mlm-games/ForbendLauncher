@@ -8,31 +8,31 @@
             android:key="order_and_rows"
             android:summary="@string/home_screen_order_desc"
             android:title="@string/home_screen_order_action_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.HomePreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.HomePreferenceFragment" />
 
         <Preference
             android:key="hidden_apps"
             android:summary="@string/hidden_applications_desc"
             android:title="@string/hidden_applications_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.HiddenPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.HiddenPreferenceFragment" />
 
         <Preference
             android:key="rec_sources"
             android:summary="@string/recommendation_blacklist_content_description"
             android:title="@string/recommendation_blacklist_action_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.RecommendationsPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.RecommendationsPreferenceFragment" />
 
         <Preference
             android:key="weather"
             android:summary="@string/weather_home_description"
             android:title="@string/weather_home_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.WeatherPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.WeatherPreferenceFragment" />
 
         <Preference
             android:key="version"
             android:summary="version"
             android:title="@string/version"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.VersionPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.VersionPreferenceFragment" />
 
     </PreferenceCategory>
 </PreferenceScreen>

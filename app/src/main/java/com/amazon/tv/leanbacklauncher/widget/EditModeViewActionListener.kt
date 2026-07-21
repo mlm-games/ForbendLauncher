@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.widget
+package org.mlm.forbendlauncher.widget
 
 interface EditModeViewActionListener {
     fun onEditModeExitTriggered()

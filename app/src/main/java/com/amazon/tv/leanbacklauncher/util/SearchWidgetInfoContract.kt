@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.net.Uri
 

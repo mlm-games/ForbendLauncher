@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.clock
+package org.mlm.forbendlauncher.clock
 
 import android.content.BroadcastReceiver
 import android.content.Context

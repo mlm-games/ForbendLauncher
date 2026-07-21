@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.Manifest
 import android.annotation.TargetApi
@@ -15,7 +15,7 @@ import android.telephony.SignalStrength
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.amazon.tv.leanbacklauncher.BuildConfig
+import org.mlm.forbendlauncher.BuildConfig
 import java.lang.ref.WeakReference
 
 class ConnectivityListener(private val mContext: Context, listener: Listener) {

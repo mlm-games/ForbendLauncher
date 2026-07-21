@@ -1,6 +1,6 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.TvRecommendation
 
 internal object NotificationUtils {
     @JvmStatic

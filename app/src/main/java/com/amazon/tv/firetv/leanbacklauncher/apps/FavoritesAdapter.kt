@@ -1,12 +1,12 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil.Companion.instance
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter
-import com.amazon.tv.leanbacklauncher.apps.LaunchPoint
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil.Companion.instance
+import org.mlm.forbendlauncher.apps.AppsAdapter
+import org.mlm.forbendlauncher.apps.LaunchPoint
 
 /**
  * Created by rockon999 on 3/7/18.

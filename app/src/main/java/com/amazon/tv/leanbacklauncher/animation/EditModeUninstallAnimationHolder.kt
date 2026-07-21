@@ -1,13 +1,13 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.TranslateAnimation
 import android.widget.TextView
-import com.amazon.tv.leanbacklauncher.EditableAppsRowView
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.BannerView
-import com.amazon.tv.leanbacklauncher.widget.EditModeView
+import org.mlm.forbendlauncher.EditableAppsRowView
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.BannerView
+import org.mlm.forbendlauncher.widget.EditModeView
 
 class EditModeUninstallAnimationHolder(editMode: EditModeView) {
     private var animationDuration: Long

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.SearchOrbView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.SearchOrbView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:lb="http://schemas.android.com/apk/res-auto"
     android:id="@id/search_view"
     android:layout_width="fill_parent"
@@ -73,4 +73,4 @@
     </LinearLayout>
 
     <include layout="@layout/widget_wrapper" />
-</com.amazon.tv.leanbacklauncher.SearchOrbView>
+</org.mlm.forbendlauncher.SearchOrbView>

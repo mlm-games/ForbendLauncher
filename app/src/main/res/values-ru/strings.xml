@@ -170,7 +170,7 @@
     <string name="recs_warning">"Требуется разрешение для приложения:
 android.permission.WRITE_SECURE_SETTINGS
 Выполните данную команду в терминале или по adb:
-pm grant com.amazon.tv.leanbacklauncher android.permission.WRITE_SECURE_SETTINGS"</string>
+pm grant org.mlm.forbendlauncher android.permission.WRITE_SECURE_SETTINGS"</string>
     <string name="recs_warning_sale">"ВАЖНО!
 Необходимо отключить пакет:
 com.amazon.device.sale.service

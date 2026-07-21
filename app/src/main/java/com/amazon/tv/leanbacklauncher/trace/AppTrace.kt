@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.trace
+package org.mlm.forbendlauncher.trace
 
 object AppTrace {
     interface TraceTag

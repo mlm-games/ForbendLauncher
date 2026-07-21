@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.animation.ObjectAnimator
 import android.graphics.Color
@@ -10,8 +10,8 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.annotation.Keep
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.widget.PlayingIndicatorView
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.widget.PlayingIndicatorView
 
 class ViewDimmer(private val targetView: View) {
 

@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 abstract class RankerParameters {
     private var lastVersionToken: Any? = null

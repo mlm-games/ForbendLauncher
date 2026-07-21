@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.content.AsyncTaskLoader
 import android.content.Context

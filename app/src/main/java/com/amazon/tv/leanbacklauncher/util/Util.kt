@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -20,8 +20,8 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.preference.PreferenceManager
-import com.amazon.tv.leanbacklauncher.MainActivity
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.MainActivity
+import org.mlm.forbendlauncher.R
 
 object Util {
     @JvmStatic

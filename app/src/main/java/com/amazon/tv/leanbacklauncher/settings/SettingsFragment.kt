@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.content.Context
 import android.content.Intent
@@ -20,18 +20,18 @@ import androidx.leanback.preference.LeanbackPreferenceFragmentCompat
 import androidx.leanback.preference.LeanbackSettingsFragmentCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.*
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.LauncherApp
-import com.amazon.tv.leanbacklauncher.MainActivity.Companion.JSONFILE
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.UpdateActivity
-import com.amazon.tv.leanbacklauncher.apps.AppsManager
-import com.amazon.tv.leanbacklauncher.util.Permission
-import com.amazon.tv.leanbacklauncher.util.Updater
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.apps.RowPreferences
+import org.mlm.forbendlauncher.util.FireTVUtils
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.LauncherApp
+import org.mlm.forbendlauncher.MainActivity.Companion.JSONFILE
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.UpdateActivity
+import org.mlm.forbendlauncher.apps.AppsManager
+import org.mlm.forbendlauncher.util.Permission
+import org.mlm.forbendlauncher.util.Updater
+import org.mlm.forbendlauncher.util.Util
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget

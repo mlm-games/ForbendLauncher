@@ -1,10 +1,10 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 class SettingsActivity : FragmentActivity(),
     PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {

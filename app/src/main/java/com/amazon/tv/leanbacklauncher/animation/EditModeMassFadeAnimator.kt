@@ -1,12 +1,12 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.view.View
 import android.view.ViewGroup
-import com.amazon.tv.leanbacklauncher.ActiveFrame
-import com.amazon.tv.leanbacklauncher.EditableAppsRowView
-import com.amazon.tv.leanbacklauncher.HomeScreenRow
-import com.amazon.tv.leanbacklauncher.MainActivity
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.ActiveFrame
+import org.mlm.forbendlauncher.EditableAppsRowView
+import org.mlm.forbendlauncher.HomeScreenRow
+import org.mlm.forbendlauncher.MainActivity
+import org.mlm.forbendlauncher.R
 
 class EditModeMassFadeAnimator(
     activity: MainActivity,

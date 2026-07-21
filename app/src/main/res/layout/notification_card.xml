@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.notifications.NotificationCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.notifications.NotificationCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:id="@id/card"
     android:layout_width="wrap_content"
@@ -13,4 +13,4 @@
     <include layout="@layout/card_content_main" />
 
     <include layout="@layout/card_content_metadata" />
-</com.amazon.tv.leanbacklauncher.notifications.NotificationCardView>
+</org.mlm.forbendlauncher.notifications.NotificationCardView>

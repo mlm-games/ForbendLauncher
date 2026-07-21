@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -16,12 +16,12 @@ import android.widget.LinearLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.widget.OnChildViewHolderSelectedListener
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getBannersSize
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.apps.*
-import com.amazon.tv.leanbacklauncher.util.Util
-import com.amazon.tv.leanbacklauncher.widget.EditModeView
-import com.amazon.tv.leanbacklauncher.widget.EditModeViewActionListener
+import org.mlm.forbendlauncher.apps.RowPreferences.getBannersSize
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.apps.*
+import org.mlm.forbendlauncher.util.Util
+import org.mlm.forbendlauncher.widget.EditModeView
+import org.mlm.forbendlauncher.widget.EditModeViewActionListener
 
 class EditableAppsRowView @JvmOverloads constructor(
     context: Context,

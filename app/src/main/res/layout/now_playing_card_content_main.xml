@@ -49,7 +49,7 @@
             android:layout_height="@dimen/leanback_card_now_playing_status_height"
             android:visibility="gone" />
 
-        <com.amazon.tv.leanbacklauncher.widget.PlayingIndicatorView
+        <org.mlm.forbendlauncher.widget.PlayingIndicatorView
             android:id="@id/play_animation"
             android:layout_width="@dimen/leanback_card_now_playing_status_width"
             android:layout_height="@dimen/leanback_card_now_playing_status_height" />

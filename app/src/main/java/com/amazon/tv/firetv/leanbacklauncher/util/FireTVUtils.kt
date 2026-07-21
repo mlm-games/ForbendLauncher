@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.content.ActivityNotFoundException
 import android.content.ComponentName
@@ -9,8 +9,8 @@ import android.net.Uri
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat.startActivity
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.LauncherApp
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.LauncherApp
 import java.io.PrintWriter
 import java.io.StringWriter
 

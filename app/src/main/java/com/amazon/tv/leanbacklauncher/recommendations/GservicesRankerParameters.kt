@@ -1,8 +1,8 @@
-package com.amazon.tv.leanbacklauncher.recommendations
+package org.mlm.forbendlauncher.recommendations
 
 import android.content.Context
-import com.amazon.tv.tvrecommendations.service.RankerParameters
-import com.amazon.tv.tvrecommendations.service.RankerParametersFactory
+import org.mlm.forbendlauncher.service.RankerParameters
+import org.mlm.forbendlauncher.service.RankerParametersFactory
 
 internal class GservicesRankerParameters private constructor() :
     RankerParameters() {

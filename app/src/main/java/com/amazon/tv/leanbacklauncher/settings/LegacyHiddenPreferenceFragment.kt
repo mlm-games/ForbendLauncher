@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.content.pm.PackageManager
 import android.graphics.Canvas
@@ -10,9 +10,9 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util.refreshHome
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util.refreshHome
 
 class LegacyHiddenPreferenceFragment : GuidedStepSupportFragment() {
     private var mActionToPackageMap: HashMap<Long, String>? = null

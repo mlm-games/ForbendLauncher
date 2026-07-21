@@ -19,11 +19,11 @@ kotlin {
 }
 
 android {
-    namespace = "com.amazon.tv.leanbacklauncher"
+    namespace = "org.mlm.forbendlauncher"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.amazon.tv.leanbacklauncher"
+        applicationId = "org.mlm.forbendlauncher"
         minSdk = 23
         //noinspection ExpiredTargetSdkVersion,OldTargetApi
         targetSdk = 36

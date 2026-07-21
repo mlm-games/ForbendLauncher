@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.graphics.Color
 import android.os.Bundle
@@ -7,16 +7,16 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getBannersSize
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getCorners
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getFrameColor
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getFrameWidth
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setBannersSize
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setCorners
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setFrameColor
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setFrameWidth
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util.refreshHome
+import org.mlm.forbendlauncher.apps.RowPreferences.getBannersSize
+import org.mlm.forbendlauncher.apps.RowPreferences.getCorners
+import org.mlm.forbendlauncher.apps.RowPreferences.getFrameColor
+import org.mlm.forbendlauncher.apps.RowPreferences.getFrameWidth
+import org.mlm.forbendlauncher.apps.RowPreferences.setBannersSize
+import org.mlm.forbendlauncher.apps.RowPreferences.setCorners
+import org.mlm.forbendlauncher.apps.RowPreferences.setFrameColor
+import org.mlm.forbendlauncher.apps.RowPreferences.setFrameWidth
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util.refreshHome
 import java.util.*
 
 class LegacyBannersFragment : GuidedStepSupportFragment() {

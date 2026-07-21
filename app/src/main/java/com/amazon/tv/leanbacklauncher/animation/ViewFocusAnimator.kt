@@ -1,12 +1,12 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.animation.ObjectAnimator
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.annotation.Keep
 import androidx.core.animation.addListener
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.capabilities.LauncherConfiguration
 import androidx.core.view.isVisible
 
 open class ViewFocusAnimator(view: View) : View.OnFocusChangeListener {

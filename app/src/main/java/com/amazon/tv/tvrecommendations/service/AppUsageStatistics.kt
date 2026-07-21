@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.app.usage.UsageStatsManager
 import android.content.Context

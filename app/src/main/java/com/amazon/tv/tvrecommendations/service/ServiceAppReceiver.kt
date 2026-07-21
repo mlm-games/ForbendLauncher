@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.content.BroadcastReceiver
 import android.content.Context

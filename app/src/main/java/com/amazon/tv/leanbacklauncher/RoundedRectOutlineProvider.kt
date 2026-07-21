@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.graphics.Outline
 import android.view.View

@@ -1,13 +1,13 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.ConditionVariable
 import android.os.RemoteException
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.recommendations.SwitchingRecommendationsClient
-import com.amazon.tv.tvrecommendations.IRecommendationsService
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.recommendations.SwitchingRecommendationsClient
+import org.mlm.forbendlauncher.IRecommendationsService
 
 class RecImageLoader private constructor(context: Context) {
     @get:Synchronized

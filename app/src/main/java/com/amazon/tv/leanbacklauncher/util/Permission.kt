@@ -1,11 +1,11 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.ActivityCompat
-import com.amazon.tv.leanbacklauncher.MainActivity
+import org.mlm.forbendlauncher.MainActivity
 
 object Permission {
 

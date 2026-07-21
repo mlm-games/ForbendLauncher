@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.widget
+package org.mlm.forbendlauncher.widget
 
 import android.content.Context
 import android.graphics.drawable.Drawable
@@ -10,15 +10,15 @@ import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.core.content.res.ResourcesCompat
-import com.amazon.tv.leanbacklauncher.EditableAppsRowView
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.animation.EditModeUninstallAnimationHolder
-import com.amazon.tv.leanbacklauncher.animation.ViewFocusAnimator
-import com.amazon.tv.leanbacklauncher.apps.BannerSelectedChangedListener
-import com.amazon.tv.leanbacklauncher.apps.BannerView
-import com.amazon.tv.leanbacklauncher.apps.OnEditModeChangedListener
-import com.amazon.tv.leanbacklauncher.graphics.ClipCircleDrawable
-import com.amazon.tv.leanbacklauncher.util.Util.isConfirmKey
+import org.mlm.forbendlauncher.EditableAppsRowView
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.animation.EditModeUninstallAnimationHolder
+import org.mlm.forbendlauncher.animation.ViewFocusAnimator
+import org.mlm.forbendlauncher.apps.BannerSelectedChangedListener
+import org.mlm.forbendlauncher.apps.BannerView
+import org.mlm.forbendlauncher.apps.OnEditModeChangedListener
+import org.mlm.forbendlauncher.graphics.ClipCircleDrawable
+import org.mlm.forbendlauncher.util.Util.isConfirmKey
 import java.util.*
 
 class EditModeView @JvmOverloads constructor(

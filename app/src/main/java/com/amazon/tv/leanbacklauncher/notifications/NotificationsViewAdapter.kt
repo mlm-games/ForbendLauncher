@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.os.Handler
@@ -8,11 +8,11 @@ import androidx.collection.ArraySet
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.leanbacklauncher.MainActivity.IdleListener
-import com.amazon.tv.leanbacklauncher.notifications.NotificationUtils.equals
-import com.amazon.tv.leanbacklauncher.util.Preconditions
-import com.amazon.tv.leanbacklauncher.widget.RowViewAdapter
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.MainActivity.IdleListener
+import org.mlm.forbendlauncher.notifications.NotificationUtils.equals
+import org.mlm.forbendlauncher.util.Preconditions
+import org.mlm.forbendlauncher.widget.RowViewAdapter
+import org.mlm.forbendlauncher.TvRecommendation
 import java.io.PrintWriter
 import java.util.*
 

@@ -1,7 +1,7 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.BuildConfig
+import org.mlm.forbendlauncher.BuildConfig
 import kotlinx.coroutines.*
 import java.util.concurrent.Executors
 

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.animation.Animator
 import android.annotation.SuppressLint
@@ -12,12 +12,12 @@ import android.view.animation.Transformation
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import com.amazon.tv.leanbacklauncher.HomeScrollManager.HomeScrollFractionListener
-import com.amazon.tv.leanbacklauncher.animation.FadeAnimator
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
-import com.amazon.tv.leanbacklauncher.notifications.HomeScreenView
+import org.mlm.forbendlauncher.HomeScrollManager.HomeScrollFractionListener
+import org.mlm.forbendlauncher.animation.FadeAnimator
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.notifications.HomeScreenView
 import kotlin.math.ceil
 import kotlin.math.floor
 

@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -10,9 +10,9 @@ import android.os.Message
 import android.os.RemoteCallbackList
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.tvrecommendations.IRecommendationsClient
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.IRecommendationsClient
+import org.mlm.forbendlauncher.TvRecommendation
 
 @SuppressLint("StaticFieldLeak")
 class RecommendationsManager private constructor(

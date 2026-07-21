@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.content.Context
 import android.content.Intent
@@ -10,9 +10,9 @@ import android.text.TextUtils
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import com.amazon.tv.leanbacklauncher.recommendations.SwitchingRecommendationsClient
-import com.amazon.tv.leanbacklauncher.util.CSyncTask
-import com.amazon.tv.tvrecommendations.IRecommendationsService
+import org.mlm.forbendlauncher.recommendations.SwitchingRecommendationsClient
+import org.mlm.forbendlauncher.util.CSyncTask
+import org.mlm.forbendlauncher.IRecommendationsService
 import kotlin.math.max
 
 class RecommendationsPreferenceManager(context: Context) {

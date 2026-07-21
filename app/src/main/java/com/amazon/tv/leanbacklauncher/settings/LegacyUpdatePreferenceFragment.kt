@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.content.Intent
 import android.net.Uri
@@ -9,10 +9,10 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.LauncherApp
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.CSyncTask
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.LauncherApp
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.CSyncTask
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.*

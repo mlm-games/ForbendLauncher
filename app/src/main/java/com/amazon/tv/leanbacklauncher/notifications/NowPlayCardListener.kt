@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.app.PendingIntent
 import android.content.Context
@@ -12,8 +12,8 @@ import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util
 import java.lang.ref.WeakReference
 
 class NowPlayCardListener(

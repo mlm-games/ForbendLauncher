@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.wallpaper.LauncherWallpaper xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.wallpaper.LauncherWallpaper xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@id/background_container"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@null"
     android:focusable="false">
 
-    <com.amazon.tv.leanbacklauncher.wallpaper.WallpaperImage
+    <org.mlm.forbendlauncher.wallpaper.WallpaperImage
         android:id="@id/wallpaper"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -15,7 +15,7 @@
         android:scaleType="matrix"
         android:visibility="gone" />
 
-    <com.amazon.tv.leanbacklauncher.wallpaper.WallpaperImage
+    <org.mlm.forbendlauncher.wallpaper.WallpaperImage
         android:id="@id/launcher_background"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -24,7 +24,7 @@
         android:scaleType="matrix"
         android:visibility="gone" />
 
-    <com.amazon.tv.leanbacklauncher.wallpaper.AnimatedLayer
+    <org.mlm.forbendlauncher.wallpaper.AnimatedLayer
         android:id="@id/animation_layer"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -33,7 +33,7 @@
         android:scaleType="matrix"
         android:visibility="gone" />
 
-    <com.amazon.tv.leanbacklauncher.wallpaper.AnimatedLayer
+    <org.mlm.forbendlauncher.wallpaper.AnimatedLayer
         android:id="@id/fade_mask_extension"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -41,7 +41,7 @@
         android:focusable="false"
         android:src="@color/launcher_background_color" />
 
-    <com.amazon.tv.leanbacklauncher.wallpaper.FadeMaskView
+    <org.mlm.forbendlauncher.wallpaper.FadeMaskView
         android:id="@id/video_fade_mask"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -57,4 +57,4 @@
         android:focusable="false"
         android:visibility="gone"
         android:src="@color/launcher_background_color" />
-</com.amazon.tv.leanbacklauncher.wallpaper.LauncherWallpaper>
+</org.mlm.forbendlauncher.wallpaper.LauncherWallpaper>

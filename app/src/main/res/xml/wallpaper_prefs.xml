@@ -8,7 +8,7 @@
             android:key="select_wallpaper"
             android:title="@string/select_wallpaper_action_title"
             android:summary="@string/select_wallpaper_action_desc"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.FileListFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.FileListFragment" />
 
         <Preference
             android:key="reset_wallpaper"

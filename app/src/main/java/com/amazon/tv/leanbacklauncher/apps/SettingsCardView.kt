@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.Context
 import android.graphics.PorterDuff
@@ -6,14 +6,14 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.widget.ImageView
 import androidx.leanback.widget.BaseCardView
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences
-import com.amazon.tv.leanbacklauncher.DimmableItem
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInLaunchAnimation
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
-import com.amazon.tv.leanbacklauncher.animation.ViewFocusAnimator
+import org.mlm.forbendlauncher.apps.RowPreferences
+import org.mlm.forbendlauncher.DimmableItem
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.animation.ParticipatesInLaunchAnimation
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.animation.ViewFocusAnimator
 
 class SettingsCardView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : BaseCardView(context, attrs, defStyle), DimmableItem, ParticipatesInLaunchAnimation, ParticipatesInScrollAnimation {
     private val mAnimDuration: Int = context.resources.getInteger(R.integer.item_scale_anim_duration)

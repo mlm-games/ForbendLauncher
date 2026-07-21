@@ -1,11 +1,11 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import androidx.leanback.widget.OnChildViewHolderSelectedListener
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.leanbacklauncher.ActiveItemsRowView
+import org.mlm.forbendlauncher.ActiveItemsRowView
 
 class NotificationRowView @JvmOverloads constructor(
     context: Context,

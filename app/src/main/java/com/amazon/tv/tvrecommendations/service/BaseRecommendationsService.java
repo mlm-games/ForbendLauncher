@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service;
+package org.mlm.forbendlauncher.service;
 
 import android.app.Service;
 import android.content.ComponentName;
@@ -13,9 +13,9 @@ import android.provider.Settings.Secure;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.amazon.tv.leanbacklauncher.logging.LeanbackLauncherEventLogger;
-import com.amazon.tv.tvrecommendations.IRecommendationsClient;
-import com.amazon.tv.tvrecommendations.IRecommendationsService.Stub;
+import org.mlm.forbendlauncher.logging.LeanbackLauncherEventLogger;
+import org.mlm.forbendlauncher.IRecommendationsClient;
+import org.mlm.forbendlauncher.IRecommendationsService.Stub;
 
 import java.util.List;
 

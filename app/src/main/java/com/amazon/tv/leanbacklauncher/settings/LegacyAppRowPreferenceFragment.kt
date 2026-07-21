@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.app.Activity
 import android.os.Build
@@ -9,26 +9,26 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.areFavoritesEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.areInputsEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.areRecommendationsEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getAppsColumns
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getEnabledCategories
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getFavoriteRowMax
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getRowMax
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setAppsColumns
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setFavoriteRowMax
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setFavoritesEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setGamesEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setInputsEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setMusicEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setRecommendationsEnabled
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setRowMax
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.setVideosEnabled
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.isAmazonNotificationsEnabled
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util.refreshHome
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.apps.RowPreferences.areFavoritesEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.areInputsEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.areRecommendationsEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.getAppsColumns
+import org.mlm.forbendlauncher.apps.RowPreferences.getEnabledCategories
+import org.mlm.forbendlauncher.apps.RowPreferences.getFavoriteRowMax
+import org.mlm.forbendlauncher.apps.RowPreferences.getRowMax
+import org.mlm.forbendlauncher.apps.RowPreferences.setAppsColumns
+import org.mlm.forbendlauncher.apps.RowPreferences.setFavoriteRowMax
+import org.mlm.forbendlauncher.apps.RowPreferences.setFavoritesEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.setGamesEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.setInputsEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.setMusicEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.setRecommendationsEnabled
+import org.mlm.forbendlauncher.apps.RowPreferences.setRowMax
+import org.mlm.forbendlauncher.apps.RowPreferences.setVideosEnabled
+import org.mlm.forbendlauncher.util.FireTVUtils.isAmazonNotificationsEnabled
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util.refreshHome
 import java.util.*
 
 /**

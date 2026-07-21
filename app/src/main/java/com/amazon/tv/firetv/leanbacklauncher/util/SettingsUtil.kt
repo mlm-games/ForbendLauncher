@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 /**
  * Created by rockon999 on 2/24/18.

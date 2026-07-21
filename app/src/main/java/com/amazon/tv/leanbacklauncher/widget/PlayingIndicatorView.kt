@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.widget
+package org.mlm.forbendlauncher.widget
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -9,7 +9,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 class PlayingIndicatorView @JvmOverloads constructor(
     context: Context,

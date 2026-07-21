@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.logging
+package org.mlm.forbendlauncher.logging
 
 import android.content.Context
 import android.util.Log

@@ -1,10 +1,10 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.os.Bundle
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.GuidedStepSupportFragment
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 class LegacyHomeScreenSettingsActivity : FragmentActivity() {
 

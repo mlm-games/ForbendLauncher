@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.app.Notification
 import android.content.Context
@@ -6,7 +6,7 @@ import android.os.Bundle
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import java.util.*
 import kotlin.math.exp
 import kotlin.math.max

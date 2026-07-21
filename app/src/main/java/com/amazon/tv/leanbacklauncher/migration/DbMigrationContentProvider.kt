@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.migration
+package org.mlm.forbendlauncher.migration
 
 import android.content.ContentProvider
 import android.content.ContentValues
@@ -8,7 +8,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.apps.AppsDbHelper
+import org.mlm.forbendlauncher.apps.AppsDbHelper
 import java.io.FileNotFoundException
 import androidx.core.net.toUri
 
@@ -61,9 +61,9 @@ class DbMigrationContentProvider(
     interface DbMigrationContract {
         companion object {
             val CONTENT_UPDATE_URI: Uri? =
-                "content://com.amazon.tv.tvrecommendations.migration/migrated".toUri()
+                "content://org.mlm.forbendlauncher.migration/migrated".toUri()
             val CONTENT_URI: Uri? =
-                "content://com.amazon.tv.tvrecommendations.migration/data".toUri()
+                "content://org.mlm.forbendlauncher.migration/data".toUri()
         }
     }
 

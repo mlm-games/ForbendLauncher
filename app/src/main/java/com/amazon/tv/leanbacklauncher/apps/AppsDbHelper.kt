@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
@@ -10,10 +10,10 @@ import android.database.sqlite.SQLiteException
 import android.database.sqlite.SQLiteOpenHelper
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.util.CSyncTask
-import com.amazon.tv.leanbacklauncher.util.Util.setInitialRankingAppliedFlag
-import com.amazon.tv.tvrecommendations.service.DbHelper
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.util.CSyncTask
+import org.mlm.forbendlauncher.util.Util.setInitialRankingAppliedFlag
+import org.mlm.forbendlauncher.service.DbHelper
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException

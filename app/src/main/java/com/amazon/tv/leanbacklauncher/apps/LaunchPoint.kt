@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.ComponentName
 import android.content.Context
@@ -12,12 +12,12 @@ import android.text.TextUtils
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.palette.graphics.Palette
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.firetv.leanbacklauncher.util.AppCategorizer
-import com.amazon.tv.firetv.leanbacklauncher.util.BannerUtil
-import com.amazon.tv.firetv.leanbacklauncher.util.SettingsUtil.SettingsType
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.util.AppCategorizer
+import org.mlm.forbendlauncher.util.BannerUtil
+import org.mlm.forbendlauncher.util.SettingsUtil.SettingsType
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions

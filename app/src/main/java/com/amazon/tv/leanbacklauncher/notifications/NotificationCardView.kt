@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
@@ -21,15 +21,15 @@ import android.widget.TextView
 import androidx.annotation.Keep
 import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.widget.BaseCardView
-import com.amazon.tv.leanbacklauncher.DimmableItem
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInLaunchAnimation
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
-import com.amazon.tv.leanbacklauncher.animation.ViewFocusAnimator
-import com.amazon.tv.leanbacklauncher.util.Util.isContentUri
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.DimmableItem
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.animation.ParticipatesInLaunchAnimation
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.animation.ViewFocusAnimator
+import org.mlm.forbendlauncher.util.Util.isContentUri
+import org.mlm.forbendlauncher.TvRecommendation
 import kotlin.math.max
 import kotlin.math.roundToInt
 

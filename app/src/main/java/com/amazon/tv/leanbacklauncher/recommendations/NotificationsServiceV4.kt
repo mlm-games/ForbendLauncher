@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.recommendations
+package org.mlm.forbendlauncher.recommendations
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,12 +12,12 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.tvrecommendations.service.RankerParametersFactory
-import com.amazon.tv.tvrecommendations.service.RecommendationsManager
-import com.amazon.tv.tvrecommendations.service.RecommendationsManager.NotificationResolver
-import com.amazon.tv.tvrecommendations.service.RecommendationsUtil.isCaptivePortal
-import com.amazon.tv.tvrecommendations.service.RecommendationsUtil.isRecommendation
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.service.RankerParametersFactory
+import org.mlm.forbendlauncher.service.RecommendationsManager
+import org.mlm.forbendlauncher.service.RecommendationsManager.NotificationResolver
+import org.mlm.forbendlauncher.service.RecommendationsUtil.isCaptivePortal
+import org.mlm.forbendlauncher.service.RecommendationsUtil.isRecommendation
 
 class NotificationsServiceV4 :
     BaseNotificationsService(false, GservicesRankerParameters.Factory()) {

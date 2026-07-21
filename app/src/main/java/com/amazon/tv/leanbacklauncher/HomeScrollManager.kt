@@ -1,10 +1,10 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
 import java.util.*
 import kotlin.math.abs
 

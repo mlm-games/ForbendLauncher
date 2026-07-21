@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.core
+package org.mlm.forbendlauncher.core
 
 import java.lang.RuntimeException
 

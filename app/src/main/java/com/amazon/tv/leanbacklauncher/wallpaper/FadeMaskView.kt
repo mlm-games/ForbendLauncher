@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.wallpaper
+package org.mlm.forbendlauncher.wallpaper
 
 import android.content.Context
 import android.graphics.Bitmap

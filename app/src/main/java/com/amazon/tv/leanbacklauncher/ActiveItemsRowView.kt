@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.content.Context
 import android.util.AttributeSet
@@ -6,15 +6,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.OnHierarchyChangeListener
 import androidx.leanback.widget.HorizontalGridView
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getAppsColumns
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowType
-import com.amazon.tv.leanbacklauncher.animation.ParticipatesInScrollAnimation
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter
-import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.apps.RowPreferences
+import org.mlm.forbendlauncher.apps.RowPreferences.getAppsColumns
+import org.mlm.forbendlauncher.apps.RowType
+import org.mlm.forbendlauncher.animation.ParticipatesInScrollAnimation
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.apps.AppsAdapter
+import org.mlm.forbendlauncher.capabilities.LauncherConfiguration
 import kotlin.math.abs
 
 open class ActiveItemsRowView @JvmOverloads constructor(

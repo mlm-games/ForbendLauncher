@@ -168,7 +168,7 @@ Aby włączyć, przejdź do Ustawień"</string>
     <string name="recs_warning">"Wymaga zgody:
 android.permission.WRITE_SECURE_SETTINGS
 Prześlij to polecenie przez adb:
-pm grant com.amazon.tv.leanbacklauncher android.permission.WRITE_SECURE_SETTINGS"</string>
+pm grant org.mlm.forbendlauncher android.permission.WRITE_SECURE_SETTINGS"</string>
     <string name="recs_warning_sale">"UWAGA!
 Musisz wyłączyć pakiet:
 com.amazon.device.sale.service

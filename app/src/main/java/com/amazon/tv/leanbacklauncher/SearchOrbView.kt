@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
@@ -23,13 +23,13 @@ import android.widget.ViewSwitcher
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.widget.SearchOrbView
-import com.amazon.tv.leanbacklauncher.MainActivity.IdleListener
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.SearchPackageChangeListener
-import com.amazon.tv.leanbacklauncher.util.Partner
-import com.amazon.tv.leanbacklauncher.util.Util.isConfirmKey
-import com.amazon.tv.leanbacklauncher.util.Util.playErrorSound
-import com.amazon.tv.leanbacklauncher.util.Util.searchIntent
-import com.amazon.tv.leanbacklauncher.util.Util.startSearchActivitySafely
+import org.mlm.forbendlauncher.MainActivity.IdleListener
+import org.mlm.forbendlauncher.apps.AppsManager.SearchPackageChangeListener
+import org.mlm.forbendlauncher.util.Partner
+import org.mlm.forbendlauncher.util.Util.isConfirmKey
+import org.mlm.forbendlauncher.util.Util.playErrorSound
+import org.mlm.forbendlauncher.util.Util.searchIntent
+import org.mlm.forbendlauncher.util.Util.startSearchActivitySafely
 import java.util.*
 
 @Suppress("DEPRECATION")

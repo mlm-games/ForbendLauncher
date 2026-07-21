@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 class Bucket(var timestamp: Long) {
     val buffer = ActiveDayBuffer(14)

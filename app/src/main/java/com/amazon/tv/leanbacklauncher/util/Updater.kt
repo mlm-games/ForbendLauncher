@@ -1,15 +1,15 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.content.Intent
 import android.net.Uri
 import android.text.Spanned
 import androidx.core.content.FileProvider
 import androidx.core.text.HtmlCompat
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.LauncherApp
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.model.Release
-import com.amazon.tv.leanbacklauncher.util.model.Releases
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.LauncherApp
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.model.Release
+import org.mlm.forbendlauncher.util.model.Releases
 import com.google.gson.Gson
 import java.io.File
 import java.io.FileOutputStream

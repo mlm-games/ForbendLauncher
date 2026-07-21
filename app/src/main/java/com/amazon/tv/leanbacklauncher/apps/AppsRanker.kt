@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -6,13 +6,13 @@ import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.util.Log
 import androidx.preference.PreferenceManager
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.Companion.getSavedSortingMode
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.SortingMode
-import com.amazon.tv.leanbacklauncher.util.Partner
-import com.amazon.tv.leanbacklauncher.util.Util.initialRankingApplied
-import com.amazon.tv.leanbacklauncher.util.Util.setInitialRankingAppliedFlag
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.AppsManager.Companion.getSavedSortingMode
+import org.mlm.forbendlauncher.apps.AppsManager.SortingMode
+import org.mlm.forbendlauncher.util.Partner
+import org.mlm.forbendlauncher.util.Util.initialRankingApplied
+import org.mlm.forbendlauncher.util.Util.setInitialRankingAppliedFlag
 import java.io.PrintWriter
 import java.lang.ref.WeakReference
 import java.util.*

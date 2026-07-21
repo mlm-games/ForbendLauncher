@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util.model
+package org.mlm.forbendlauncher.util.model
 
 class Releases : ArrayList<Release>()
 

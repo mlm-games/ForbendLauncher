@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.content.Context
 import android.content.Intent
@@ -6,9 +6,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.leanbacklauncher.core.LaunchException
-import com.amazon.tv.leanbacklauncher.trace.AppTrace
-import com.amazon.tv.leanbacklauncher.trace.AppTrace.TraceTag
+import org.mlm.forbendlauncher.core.LaunchException
+import org.mlm.forbendlauncher.trace.AppTrace
+import org.mlm.forbendlauncher.trace.AppTrace.TraceTag
 
 abstract class LauncherViewHolder protected constructor(v: View) : RecyclerView.ViewHolder(v), View.OnClickListener {
     @JvmField

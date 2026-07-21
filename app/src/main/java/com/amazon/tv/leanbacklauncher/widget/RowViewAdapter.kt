@@ -1,9 +1,9 @@
-package com.amazon.tv.leanbacklauncher.widget
+package org.mlm.forbendlauncher.widget
 
 import android.content.Context
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import com.amazon.tv.leanbacklauncher.MainActivity
+import org.mlm.forbendlauncher.MainActivity
 
 abstract class RowViewAdapter<VH : RecyclerView.ViewHolder>(
     protected val mContext: Context

@@ -1,8 +1,8 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.view.View
-import com.amazon.tv.leanbacklauncher.apps.BannerSelectedChangedListener
-import com.amazon.tv.leanbacklauncher.apps.BannerView
+import org.mlm.forbendlauncher.apps.BannerSelectedChangedListener
+import org.mlm.forbendlauncher.apps.BannerView
 
 class AppViewFocusAnimator(view: BannerView) : ViewFocusAnimator(view), BannerSelectedChangedListener {
     private var selected = false

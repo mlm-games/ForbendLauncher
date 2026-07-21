@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.app.PendingIntent
 import android.content.Context
@@ -8,13 +8,13 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.AppBannerViewHolder
-import com.amazon.tv.leanbacklauncher.core.LaunchException
-import com.amazon.tv.leanbacklauncher.notifications.PartnerAdapter.PartnerBannerViewHolder
-import com.amazon.tv.leanbacklauncher.util.Util.startActivity
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.AppsAdapter.AppBannerViewHolder
+import org.mlm.forbendlauncher.core.LaunchException
+import org.mlm.forbendlauncher.notifications.PartnerAdapter.PartnerBannerViewHolder
+import org.mlm.forbendlauncher.util.Util.startActivity
+import org.mlm.forbendlauncher.TvRecommendation
 
 class PartnerAdapter(context: Context, private val mListener: BlacklistListener?) :
     NotificationsServiceAdapter<PartnerBannerViewHolder>(context, 15000, 60000) {

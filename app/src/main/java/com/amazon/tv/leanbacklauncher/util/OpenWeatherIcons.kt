@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.content.Context
 import android.graphics.Color
@@ -7,7 +7,7 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import java.util.*
 
 class OpenWeatherIcons(

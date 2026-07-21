@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.os.Build
 import android.os.Bundle
@@ -10,8 +10,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.amazon.tv.leanbacklauncher.util.Permission
-import com.amazon.tv.leanbacklauncher.util.Updater
+import org.mlm.forbendlauncher.util.Permission
+import org.mlm.forbendlauncher.util.Updater
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

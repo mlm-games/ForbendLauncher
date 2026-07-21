@@ -1,9 +1,9 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.amazon.tv.leanbacklauncher.notifications.RecImageKey
-import com.amazon.tv.leanbacklauncher.notifications.RecImageLoaderFactory
+import org.mlm.forbendlauncher.notifications.RecImageKey
+import org.mlm.forbendlauncher.notifications.RecImageLoaderFactory
 import com.bumptech.glide.Glide
 import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.Registry

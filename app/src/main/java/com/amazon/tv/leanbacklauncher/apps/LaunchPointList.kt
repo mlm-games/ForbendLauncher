@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.ComponentName
 import android.content.Context
@@ -11,14 +11,14 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils
-import com.amazon.tv.firetv.leanbacklauncher.util.SettingsUtil.SettingsType
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.CSyncTask
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.util.FireTVUtils
+import org.mlm.forbendlauncher.util.SettingsUtil.SettingsType
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.CSyncTask
+import org.mlm.forbendlauncher.util.Util
 import java.util.*
 
 class LaunchPointList(ctx: Context) {
@@ -61,7 +61,7 @@ class LaunchPointList(ctx: Context) {
             override fun include(point: ResolveInfo?): Boolean {
                 return when {
                     point?.toString()
-                        ?.contains("com.amazon.tv.leanbacklauncher.MainActivity") == true -> true
+                        ?.contains("org.mlm.forbendlauncher.MainActivity") == true -> true
 
                     point?.toString()
                         ?.contains("com.amazon.tv.launcher/.ui.DebugActivity") == true -> true
@@ -755,7 +755,7 @@ class LaunchPointList(ctx: Context) {
 //        // LAUNCHER SETTINGS // 4
 //        if (mContext.resources.getBoolean(R.bool.full_screen_settings_enabled)) {
 //            val setIntent = Intent()
-//            setIntent.action = "com.amazon.tv.leanbacklauncher.SETTINGS"
+//            setIntent.action = "org.mlm.forbendlauncher.SETTINGS"
 //            setIntent.component =
 //                ComponentName.unflattenFromString(mContext.packageName + "/.settings.LegacyHomeScreenSettingsActivity")
 //            lp = LaunchPoint(
@@ -887,7 +887,7 @@ class LaunchPointList(ctx: Context) {
             for (ptr in 0 until size) {
                 val info = launchPoints[ptr]
                 // todo fix this
-                // if (info.activityInfo != null && info.activityInfo.packageName.contains("com.amazon.tv.leanbacklauncher")) {
+                // if (info.activityInfo != null && info.activityInfo.packageName.contains("org.mlm.forbendlauncher")) {
                 if (info.activityInfo != null) {
                     return getComponentName(info)
                 }

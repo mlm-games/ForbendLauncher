@@ -4,7 +4,7 @@
                 android:layout_height="match_parent">
     <fragment
             android:id="@+id/settingsFragment"
-            android:name="com.amazon.tv.leanbacklauncher.settings.SettingsFragment"
+            android:name="org.mlm.forbendlauncher.settings.SettingsFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
     </fragment>

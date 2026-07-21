@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.graphics
+package org.mlm.forbendlauncher.graphics
 
 import android.graphics.Canvas
 import android.graphics.ColorFilter

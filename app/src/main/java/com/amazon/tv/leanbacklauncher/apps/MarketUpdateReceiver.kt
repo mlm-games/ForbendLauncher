@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,7 +8,7 @@ import android.content.pm.PackageManager
 import android.os.Parcelable
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import java.util.*
 
 class MarketUpdateReceiver(private val mListener: InstallingLaunchPointListener) : BroadcastReceiver() {

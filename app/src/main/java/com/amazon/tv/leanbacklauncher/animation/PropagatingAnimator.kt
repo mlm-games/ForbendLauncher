@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.animation.ValueAnimator
 import android.view.View

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.app.PendingIntent
 import android.content.Context
@@ -12,16 +12,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import com.amazon.tv.leanbacklauncher.LauncherViewHolder
-import com.amazon.tv.leanbacklauncher.MainActivity.IdleListener
-import com.amazon.tv.leanbacklauncher.OpaqueBitmapTransformation
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.ActionOpenLaunchPointListener
-import com.amazon.tv.leanbacklauncher.capabilities.LauncherConfiguration
-import com.amazon.tv.leanbacklauncher.core.LaunchException
-import com.amazon.tv.leanbacklauncher.util.Util
-import com.amazon.tv.tvrecommendations.IRecommendationsService
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.LauncherViewHolder
+import org.mlm.forbendlauncher.MainActivity.IdleListener
+import org.mlm.forbendlauncher.OpaqueBitmapTransformation
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.AppsAdapter.ActionOpenLaunchPointListener
+import org.mlm.forbendlauncher.capabilities.LauncherConfiguration
+import org.mlm.forbendlauncher.core.LaunchException
+import org.mlm.forbendlauncher.util.Util
+import org.mlm.forbendlauncher.IRecommendationsService
+import org.mlm.forbendlauncher.TvRecommendation
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions

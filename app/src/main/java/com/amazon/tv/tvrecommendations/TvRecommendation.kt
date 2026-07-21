@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations
+package org.mlm.forbendlauncher
 
 import android.app.PendingIntent
 import android.graphics.Bitmap

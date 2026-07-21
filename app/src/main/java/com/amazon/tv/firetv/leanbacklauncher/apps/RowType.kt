@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 sealed class RowType(val code: Int) {
     object SEARCH : RowType(0)

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.Context
 import android.content.Intent
@@ -21,24 +21,24 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.firetv.leanbacklauncher.apps.FavoritesAdapter
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getAppsColumns
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowPreferences.getRowMax
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowType
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil.Companion.instance
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.EditableAppsRowView
-import com.amazon.tv.leanbacklauncher.LauncherViewHolder
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer
-import com.amazon.tv.leanbacklauncher.apps.AppsAdapter.AppViewHolder
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.Companion.getInstance
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.Companion.saveSortingMode
-import com.amazon.tv.leanbacklauncher.util.CSyncTask
-import com.amazon.tv.leanbacklauncher.util.Lists
-import com.amazon.tv.leanbacklauncher.widget.RowViewAdapter
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.apps.FavoritesAdapter
+import org.mlm.forbendlauncher.apps.RowPreferences.getAppsColumns
+import org.mlm.forbendlauncher.apps.RowPreferences.getRowMax
+import org.mlm.forbendlauncher.apps.RowType
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil.Companion.instance
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.EditableAppsRowView
+import org.mlm.forbendlauncher.LauncherViewHolder
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.animation.ViewDimmer
+import org.mlm.forbendlauncher.apps.AppsAdapter.AppViewHolder
+import org.mlm.forbendlauncher.apps.AppsManager.Companion.getInstance
+import org.mlm.forbendlauncher.apps.AppsManager.Companion.saveSortingMode
+import org.mlm.forbendlauncher.util.CSyncTask
+import org.mlm.forbendlauncher.util.Lists
+import org.mlm.forbendlauncher.widget.RowViewAdapter
 import kotlin.math.abs
 
 open class AppsAdapter(
@@ -74,7 +74,7 @@ open class AppsAdapter(
                     return false
                 // hard filter (self / amazon / etc)
                 if (point?.componentName?.contains(
-                        "com.amazon.tv.leanbacklauncher.MainActivity",
+                        "org.mlm.forbendlauncher.MainActivity",
                         true
                     ) == true
                 )

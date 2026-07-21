@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.notifications.RecCardMetaDataView xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.notifications.RecCardMetaDataView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:custom="http://schemas.android.com/apk/res-auto"
     android:id="@id/metadata"
     android:layout_width="fill_parent"
@@ -37,7 +37,7 @@
         android:contentDescription="@null"
         android:scaleType="fitCenter" />
 
-    <com.amazon.tv.leanbacklauncher.notifications.PrescaledLayout
+    <org.mlm.forbendlauncher.notifications.PrescaledLayout
         android:id="@id/selected_metadata_container"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -106,5 +106,5 @@
                 android:paddingBottom="@dimen/notif_card_info_badge_bottom_margin"
                 android:scaleType="fitCenter" />
         </RelativeLayout>
-    </com.amazon.tv.leanbacklauncher.notifications.PrescaledLayout>
-</com.amazon.tv.leanbacklauncher.notifications.RecCardMetaDataView>
+    </org.mlm.forbendlauncher.notifications.PrescaledLayout>
+</org.mlm.forbendlauncher.notifications.RecCardMetaDataView>

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.app.PendingIntent
 import android.content.Context
@@ -6,10 +6,10 @@ import android.content.Intent
 import android.util.AttributeSet
 import android.widget.TextView
 import android.widget.ViewFlipper
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.LaunchPoint
-import com.amazon.tv.leanbacklauncher.core.LaunchException
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.LaunchPoint
+import org.mlm.forbendlauncher.core.LaunchException
+import org.mlm.forbendlauncher.util.Util
 
 class HomeScreenView @JvmOverloads constructor(
     context: Context,

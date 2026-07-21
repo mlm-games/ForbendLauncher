@@ -220,7 +220,7 @@ To enable, go to Settings"</string>
     <string name="recs_warning">"Requires permission:
 android.permission.WRITE_SECURE_SETTINGS
 Apply this command over adb:
-pm grant com.amazon.tv.leanbacklauncher android.permission.WRITE_SECURE_SETTINGS"</string>
+pm grant org.mlm.forbendlauncher android.permission.WRITE_SECURE_SETTINGS"</string>
     <string name="recs_warning_sale">"WARNING!
 You need to disable package:
 com.amazon.device.sale.service

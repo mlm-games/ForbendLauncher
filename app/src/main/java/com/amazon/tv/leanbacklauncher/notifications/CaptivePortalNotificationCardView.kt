@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -6,8 +6,8 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.BitmapDrawable
 import androidx.core.content.res.ResourcesCompat
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.TvRecommendation
 import com.bumptech.glide.request.target.SizeReadyCallback
 
 class CaptivePortalNotificationCardView(context: Context?) : RecView(

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.inputs
+package org.mlm.forbendlauncher.inputs
 
 import android.content.Context
 import android.content.Intent
@@ -22,11 +22,11 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
-import com.amazon.tv.leanbacklauncher.LauncherViewHolder
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.BannerView
-import com.amazon.tv.leanbacklauncher.util.Partner
-import com.amazon.tv.leanbacklauncher.widget.RowViewAdapter
+import org.mlm.forbendlauncher.LauncherViewHolder
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.BannerView
+import org.mlm.forbendlauncher.util.Partner
+import org.mlm.forbendlauncher.widget.RowViewAdapter
 import java.util.*
 
 class InputsAdapter(

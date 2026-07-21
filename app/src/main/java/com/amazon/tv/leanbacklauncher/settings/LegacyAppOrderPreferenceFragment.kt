@@ -1,14 +1,14 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.os.Bundle
 import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.Companion.getSavedSortingMode
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.Companion.saveSortingMode
-import com.amazon.tv.leanbacklauncher.apps.AppsManager.SortingMode
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.AppsManager.Companion.getSavedSortingMode
+import org.mlm.forbendlauncher.apps.AppsManager.Companion.saveSortingMode
+import org.mlm.forbendlauncher.apps.AppsManager.SortingMode
 
 class LegacyAppOrderPreferenceFragment : GuidedStepSupportFragment() {
     override fun onCreateGuidance(savedInstanceState: Bundle?): Guidance {

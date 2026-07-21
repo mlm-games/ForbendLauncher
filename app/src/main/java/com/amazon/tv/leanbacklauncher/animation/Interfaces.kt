@@ -1,5 +1,5 @@
 // Interfaces.kt - Combine all simple interfaces
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.view.View
 

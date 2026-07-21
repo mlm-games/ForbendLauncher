@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -7,7 +7,7 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import androidx.leanback.app.GuidedStepSupportFragment
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppInfoFragment.Companion.newInstance
+import org.mlm.forbendlauncher.apps.AppInfoFragment.Companion.newInstance
 
 class AppInfoActivity : FragmentActivity() {
     private var icon: Drawable? = null

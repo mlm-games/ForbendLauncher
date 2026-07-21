@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.settings
+package org.mlm.forbendlauncher.settings
 
 import android.os.Build
 import android.os.Bundle
@@ -6,9 +6,9 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.settings.RecommendationsPreferenceManager.LoadBlacklistCountCallback
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.settings.RecommendationsPreferenceManager.LoadBlacklistCountCallback
 import java.util.*
 
 class LegacyHomeScreenPreferenceFragment : GuidedStepSupportFragment(), LoadBlacklistCountCallback {

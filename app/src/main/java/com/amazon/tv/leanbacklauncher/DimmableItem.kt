@@ -1,6 +1,6 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
-import com.amazon.tv.leanbacklauncher.animation.ViewDimmer.DimState
+import org.mlm.forbendlauncher.animation.ViewDimmer.DimState
 
 interface DimmableItem {
 

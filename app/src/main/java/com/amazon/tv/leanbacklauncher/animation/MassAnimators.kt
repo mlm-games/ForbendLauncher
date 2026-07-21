@@ -1,11 +1,11 @@
-package com.amazon.tv.leanbacklauncher.animation
+package org.mlm.forbendlauncher.animation
 
 import android.graphics.Rect
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.PathInterpolator
 import androidx.leanback.widget.HorizontalGridView
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 // MassFadeAnimator
 class MassFadeAnimator private constructor(builder: Builder) : 

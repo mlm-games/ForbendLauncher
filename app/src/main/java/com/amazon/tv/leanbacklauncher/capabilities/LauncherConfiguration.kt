@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.capabilities
+package org.mlm.forbendlauncher.capabilities
 
 abstract class LauncherConfiguration {
     abstract val isCardElevationEnabled: Boolean

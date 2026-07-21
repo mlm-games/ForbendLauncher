@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.amazon.tv.leanbacklauncher.ActiveFrame xmlns:android="http://schemas.android.com/apk/res/android"
+<org.mlm.forbendlauncher.ActiveFrame xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@id/notification_view"
     android:layout_width="fill_parent"
     android:layout_height="@dimen/notif_row_height"
@@ -8,7 +8,7 @@
     android:clipToPadding="false"
     android:focusable="false">
 
-    <com.amazon.tv.leanbacklauncher.notifications.HomeScreenView
+    <org.mlm.forbendlauncher.notifications.HomeScreenView
         android:id="@id/home_screen_messaging"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -20,7 +20,7 @@
         android:inAnimation="@anim/empty_state_flip_fade_in"
         android:outAnimation="@anim/empty_state_flip_fade_out">
 
-        <com.amazon.tv.leanbacklauncher.notifications.NotificationRowView
+        <org.mlm.forbendlauncher.notifications.NotificationRowView
             android:id="@id/list"
             android:layout_width="fill_parent"
             android:layout_height="@dimen/notif_row_max_height"
@@ -40,5 +40,5 @@
         <include
             android:id="@id/notification_timeout"
             layout="@layout/notification_row_timeout_empty" />
-    </com.amazon.tv.leanbacklauncher.notifications.HomeScreenView>
-</com.amazon.tv.leanbacklauncher.ActiveFrame>
+    </org.mlm.forbendlauncher.notifications.HomeScreenView>
+</org.mlm.forbendlauncher.ActiveFrame>

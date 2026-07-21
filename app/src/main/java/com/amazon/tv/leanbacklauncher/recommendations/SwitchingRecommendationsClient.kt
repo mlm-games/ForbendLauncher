@@ -1,9 +1,9 @@
-package com.amazon.tv.leanbacklauncher.recommendations
+package org.mlm.forbendlauncher.recommendations
 
 import android.content.Context
 import android.content.Intent
 import androidx.annotation.Keep
-import com.amazon.tv.tvrecommendations.RecommendationsClient
+import org.mlm.forbendlauncher.RecommendationsClient
 
 abstract class SwitchingRecommendationsClient(private val mContext: Context?) :
     RecommendationsClient(

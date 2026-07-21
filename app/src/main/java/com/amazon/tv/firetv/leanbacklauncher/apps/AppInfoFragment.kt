@@ -1,17 +1,17 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.leanback.app.GuidedStepSupportFragment
 import androidx.leanback.widget.GuidanceStylist.Guidance
 import androidx.leanback.widget.GuidedAction
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.isAmazonStoreInstalled
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.isPlayStoreInstalled
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.openAppInAmazonStore
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.openAppInPlayStore
-import com.amazon.tv.firetv.leanbacklauncher.util.FireTVUtils.startAppSettings
-import com.amazon.tv.firetv.leanbacklauncher.util.SharedPreferencesUtil.Companion.instance
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.util.FireTVUtils.isAmazonStoreInstalled
+import org.mlm.forbendlauncher.util.FireTVUtils.isPlayStoreInstalled
+import org.mlm.forbendlauncher.util.FireTVUtils.openAppInAmazonStore
+import org.mlm.forbendlauncher.util.FireTVUtils.openAppInPlayStore
+import org.mlm.forbendlauncher.util.FireTVUtils.startAppSettings
+import org.mlm.forbendlauncher.util.SharedPreferencesUtil.Companion.instance
+import org.mlm.forbendlauncher.R
 import java.util.*
 
 class AppInfoFragment : GuidedStepSupportFragment() {

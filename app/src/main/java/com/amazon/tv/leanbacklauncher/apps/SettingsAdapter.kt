@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,9 +9,9 @@ import android.os.Handler
 import android.os.Looper
 import android.os.Message
 import androidx.core.content.res.ResourcesCompat
-import com.amazon.tv.firetv.leanbacklauncher.apps.AppCategory
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.apps.AppCategory
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
 import java.lang.ref.WeakReference
 import java.util.*
 

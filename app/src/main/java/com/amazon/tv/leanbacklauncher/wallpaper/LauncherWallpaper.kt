@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.wallpaper
+package org.mlm.forbendlauncher.wallpaper
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -10,14 +10,14 @@ import android.widget.ImageView
 import androidx.core.content.ContextCompat
 import androidx.leanback.graphics.ColorFilterCache
 import androidx.leanback.graphics.ColorFilterDimmer
-import com.amazon.tv.leanbacklauncher.HomeScrollManager.HomeScrollFractionListener
-import com.amazon.tv.leanbacklauncher.MainActivity
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.animation.AnimatorLifecycle.OnAnimationFinishedListener
-import com.amazon.tv.leanbacklauncher.trace.AppTrace
-import com.amazon.tv.leanbacklauncher.util.Partner
-import com.amazon.tv.leanbacklauncher.wallpaper.WallpaperDownloader.OnDownloadFinishedListener
-import com.amazon.tv.leanbacklauncher.wallpaper.WallpaperInstaller.Companion.getInstance
+import org.mlm.forbendlauncher.HomeScrollManager.HomeScrollFractionListener
+import org.mlm.forbendlauncher.MainActivity
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.animation.AnimatorLifecycle.OnAnimationFinishedListener
+import org.mlm.forbendlauncher.trace.AppTrace
+import org.mlm.forbendlauncher.util.Partner
+import org.mlm.forbendlauncher.wallpaper.WallpaperDownloader.OnDownloadFinishedListener
+import org.mlm.forbendlauncher.wallpaper.WallpaperInstaller.Companion.getInstance
 
 class LauncherWallpaper @JvmOverloads constructor(
     context: Context,

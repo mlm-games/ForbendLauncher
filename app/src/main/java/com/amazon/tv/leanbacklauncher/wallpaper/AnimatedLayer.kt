@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.wallpaper
+package org.mlm.forbendlauncher.wallpaper
 
 import android.animation.Animator
 import android.animation.AnimatorInflater
@@ -6,7 +6,7 @@ import android.animation.AnimatorListenerAdapter
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.AttributeSet
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 
 class AnimatedLayer @JvmOverloads constructor(
     context: Context,

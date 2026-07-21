@@ -1,4 +1,4 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.app.Notification
 import android.content.Context
@@ -9,7 +9,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.service.notification.StatusBarNotification
 import android.text.TextUtils
-import com.amazon.tv.tvrecommendations.TvRecommendation
+import org.mlm.forbendlauncher.TvRecommendation
 import kotlin.math.min
 
 object RecommendationsUtil {

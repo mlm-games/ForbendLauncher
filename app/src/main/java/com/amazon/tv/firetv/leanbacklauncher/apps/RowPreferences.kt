@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.app.NotificationManager
 import android.content.ComponentName
@@ -12,10 +12,10 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.LauncherApp
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.recommendations.NotificationsServiceV4
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.LauncherApp
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.recommendations.NotificationsServiceV4
 
 object RowPreferences {
 //    private val TAG by lazy { if (BuildConfig.DEBUG) ("[*]" + javaClass.simpleName).take(21) else javaClass.simpleName }

@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.wallpaper
+package org.mlm.forbendlauncher.wallpaper
 
 import android.app.WallpaperManager
 import android.content.BroadcastReceiver
@@ -15,9 +15,9 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.res.ResourcesCompat
 import androidx.preference.PreferenceManager
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.util.Util.getDisplayMetrics
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.util.Util.getDisplayMetrics
 import java.io.File
 import java.io.IOException
 

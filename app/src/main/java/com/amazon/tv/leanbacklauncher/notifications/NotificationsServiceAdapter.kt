@@ -1,4 +1,4 @@
-    package com.amazon.tv.leanbacklauncher.notifications
+    package org.mlm.forbendlauncher.notifications
 
     import android.app.PendingIntent
     import android.content.Context
@@ -9,13 +9,13 @@
     import android.os.RemoteException
     import android.util.Log
     import androidx.recyclerview.widget.RecyclerView
-    import com.amazon.tv.leanbacklauncher.notifications.NotificationUtils.equals
-    import com.amazon.tv.leanbacklauncher.recommendations.SwitchingRecommendationsClient
-    import com.amazon.tv.leanbacklauncher.trace.AppTrace
-    import com.amazon.tv.leanbacklauncher.trace.AppTrace.TraceTag
-    import com.amazon.tv.tvrecommendations.IRecommendationsClient
-    import com.amazon.tv.tvrecommendations.IRecommendationsService
-    import com.amazon.tv.tvrecommendations.TvRecommendation
+    import org.mlm.forbendlauncher.notifications.NotificationUtils.equals
+    import org.mlm.forbendlauncher.recommendations.SwitchingRecommendationsClient
+    import org.mlm.forbendlauncher.trace.AppTrace
+    import org.mlm.forbendlauncher.trace.AppTrace.TraceTag
+    import org.mlm.forbendlauncher.IRecommendationsClient
+    import org.mlm.forbendlauncher.IRecommendationsService
+    import org.mlm.forbendlauncher.TvRecommendation
     import java.lang.ref.WeakReference
     import java.util.*
 

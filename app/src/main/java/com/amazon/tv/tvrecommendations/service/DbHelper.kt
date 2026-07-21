@@ -1,10 +1,10 @@
-package com.amazon.tv.tvrecommendations.service
+package org.mlm.forbendlauncher.service
 
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException

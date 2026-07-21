@@ -8,7 +8,7 @@
             android:key="rows_prefs"
             android:summary="@string/select_app_customize_rows_title"
             android:title="@string/edit_row_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.AppRowsPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.AppRowsPreferenceFragment" />
 
         <Preference
             android:key="apps_order"
@@ -19,13 +19,13 @@
             android:key="banners_prefs"
             android:summary="@string/banners_prefs_desc"
             android:title="@string/banners_prefs_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.BannersPreferenceFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.BannersPreferenceFragment" />
 
         <Preference
             android:key="background_prefs"
             android:summary="@string/select_wallpaper_action_desc"
             android:title="@string/wallpaper_title"
-            app:fragment="com.amazon.tv.leanbacklauncher.settings.WallpaperFragment" />
+            app:fragment="org.mlm.forbendlauncher.settings.WallpaperFragment" />
 
     </PreferenceCategory>
 </PreferenceScreen>

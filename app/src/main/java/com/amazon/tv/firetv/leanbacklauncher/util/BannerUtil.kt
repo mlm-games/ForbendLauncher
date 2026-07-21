@@ -1,6 +1,6 @@
-package com.amazon.tv.firetv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import java.util.*
 
 object BannerUtil {

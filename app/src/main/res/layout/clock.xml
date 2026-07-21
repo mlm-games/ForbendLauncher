@@ -56,7 +56,7 @@
             </FrameLayout>
         </LinearLayout>
         <!-- clock wrapper -->
-        <com.amazon.tv.leanbacklauncher.clock.ClockView
+        <org.mlm.forbendlauncher.clock.ClockView
             android:id="@id/clock"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/widget_clock_height"

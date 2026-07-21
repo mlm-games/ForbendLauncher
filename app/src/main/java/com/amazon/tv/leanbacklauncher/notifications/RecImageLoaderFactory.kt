@@ -1,8 +1,8 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.amazon.tv.leanbacklauncher.notifications.RecImageLoader.Companion.getInstance
+import org.mlm.forbendlauncher.notifications.RecImageLoader.Companion.getInstance
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.Options

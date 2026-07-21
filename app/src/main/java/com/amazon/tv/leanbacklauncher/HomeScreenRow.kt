@@ -1,10 +1,10 @@
-package com.amazon.tv.leanbacklauncher
+package org.mlm.forbendlauncher
 
 import android.graphics.drawable.Drawable
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.AdapterDataObserver
-import com.amazon.tv.firetv.leanbacklauncher.apps.RowType
+import org.mlm.forbendlauncher.apps.RowType
 
 class HomeScreenRow internal constructor(val type: RowType, val position: Int, private val mHideIfEmpty: Boolean) : AdapterDataObserver() {
     private var mAdapter: RecyclerView.Adapter<*>? = null

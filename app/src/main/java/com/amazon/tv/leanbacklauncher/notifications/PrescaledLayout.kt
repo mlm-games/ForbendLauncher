@@ -1,10 +1,10 @@
-package com.amazon.tv.leanbacklauncher.notifications
+package org.mlm.forbendlauncher.notifications
 
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
-import com.amazon.tv.leanbacklauncher.R
+import org.mlm.forbendlauncher.R
 import kotlin.math.ceil
 
 class PrescaledLayout : ViewGroup {

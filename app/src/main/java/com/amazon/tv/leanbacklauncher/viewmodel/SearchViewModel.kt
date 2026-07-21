@@ -1,11 +1,11 @@
-package com.amazon.tv.leanbacklauncher.viewmodel
+package org.mlm.forbendlauncher.viewmodel
 
 import android.app.Application
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.amazon.tv.leanbacklauncher.util.TvSearchIconLoader
-import com.amazon.tv.leanbacklauncher.util.TvSearchSuggestionsLoader
+import org.mlm.forbendlauncher.util.TvSearchIconLoader
+import org.mlm.forbendlauncher.util.TvSearchSuggestionsLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

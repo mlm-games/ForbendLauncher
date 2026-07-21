@@ -1,4 +1,4 @@
-package com.amazon.tv.leanbacklauncher.util
+package org.mlm.forbendlauncher.util
 
 import android.annotation.SuppressLint
 import android.content.ComponentName
@@ -11,8 +11,8 @@ import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.text.TextUtils
 import android.util.Log
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.apps.AppsManager
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.apps.AppsManager
 import java.util.*
 
 class Partner private constructor(

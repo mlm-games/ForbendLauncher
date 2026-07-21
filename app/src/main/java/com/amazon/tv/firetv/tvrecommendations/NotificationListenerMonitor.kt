@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.tvrecommendations
+package org.mlm.forbendlauncher
 
 import android.app.*
 import android.content.ComponentName
@@ -14,11 +14,11 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.amazon.tv.leanbacklauncher.BuildConfig
-import com.amazon.tv.leanbacklauncher.MainActivity
-import com.amazon.tv.leanbacklauncher.R
-import com.amazon.tv.leanbacklauncher.recommendations.NotificationsServiceV4
-import com.amazon.tv.leanbacklauncher.util.Util
+import org.mlm.forbendlauncher.BuildConfig
+import org.mlm.forbendlauncher.MainActivity
+import org.mlm.forbendlauncher.R
+import org.mlm.forbendlauncher.recommendations.NotificationsServiceV4
+import org.mlm.forbendlauncher.util.Util
 import java.util.*
 
 class NotificationListenerMonitor : Service() {

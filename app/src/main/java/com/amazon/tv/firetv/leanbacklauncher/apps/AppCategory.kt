@@ -1,4 +1,4 @@
-package com.amazon.tv.firetv.leanbacklauncher.apps
+package org.mlm.forbendlauncher.apps
 
 import android.util.SparseArray
 import java.util.*
