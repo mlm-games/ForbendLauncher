@@ -20,13 +20,13 @@ kotlin {
 
 android {
     namespace = "org.mlm.forbendlauncher"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "org.mlm.forbendlauncher"
         minSdk = 23
         //noinspection ExpiredTargetSdkVersion,OldTargetApi
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 112
         versionName = "2.0.6"
 
